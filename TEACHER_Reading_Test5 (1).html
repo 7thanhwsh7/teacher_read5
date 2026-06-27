@@ -1,0 +1,3607 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.EDU — Teacher Reading Correction Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --cream:        #fdfcfb;
+  --cream-deep:   #f5f2ed;
+  --cream-border: #e8e2d9;
+  --ink:          #1a1714;
+  --ink-soft:     #4a4540;
+  --ink-muted:    #8a8178;
+  --gold:         #D4AF37;
+  --gold-light:   #F0D060;
+  --gold-pale:    #fdf6dc;
+  --gold-border:  #e8c84a;
+  --navy:         #1b2a4a;
+  --navy-mid:     #253a63;
+  --highlight:    #fff176;
+  --highlight-bg: #fffde7;
+  --success:      #2e7d32;
+  --success-bg:   #f1f8e9;
+  --evidence-bg:  #e8f4fd;
+  --evidence-border: #90caf9;
+  --shadow-sm:    0 1px 3px rgba(26,23,20,0.08);
+  --shadow-md:    0 4px 16px rgba(26,23,20,0.10);
+  --shadow-lg:    0 8px 32px rgba(26,23,20,0.13);
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    18px;
+  --sidebar-w:    72px;
+  --font-body:    'Be Vietnam Pro', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.25);
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.logo-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(212,175,55,0.6);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.logo-test-name {
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold-light);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.sidebar-section {
+  padding: 14px 16px 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 8px;
+}
+
+/* Passage selector */
+.passage-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  flex-shrink: 0;
+}
+
+.passage-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: 1px solid rgba(212,175,55,0.3);
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.passage-tab:hover {
+  background: rgba(212,175,55,0.12);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.5);
+}
+
+.passage-tab.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212,175,55,0.35);
+}
+
+/* Question map */
+.q-map-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.2) transparent;
+}
+
+.q-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.q-chip {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.q-chip:hover {
+  background: rgba(212,175,55,0.15);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.3);
+}
+
+.q-chip.answered {
+  background: rgba(212,175,55,0.18);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.35);
+}
+
+.q-chip.checked {
+  background: rgba(46,125,50,0.25);
+  color: #a5d6a7;
+  border-color: rgba(46,125,50,0.4);
+}
+
+/* Sidebar actions */
+.sidebar-actions {
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(212,175,55,0.15);
+}
+
+.btn-sidebar {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  border: 1px solid;
+}
+
+.btn-show-keys {
+  background: var(--gold);
+  color: var(--navy);
+  border-color: var(--gold);
+}
+
+.btn-show-keys:hover {
+  background: var(--gold-light);
+  box-shadow: 0 3px 12px rgba(212,175,55,0.4);
+}
+
+.btn-clear-hl {
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.btn-clear-hl:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Top bar */
+#topbar {
+  height: 52px;
+  min-height: 52px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--navy);
+  font-style: italic;
+}
+
+.topbar-meta {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.topbar-passage-badge {
+  margin-left: auto;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold-border);
+  color: #8a6b00;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+/* Split pane */
+#split-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Left: Passage */
+#passage-pane {
+  width: 50%;
+  min-width: 280px;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* Splitter */
+#splitter {
+  width: 5px;
+  background: var(--cream-border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+#splitter:hover, #splitter.dragging {
+  background: var(--gold);
+}
+
+#splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  background: rgba(212,175,55,0.5);
+  border-radius: 4px;
+}
+
+/* Right: Questions */
+#questions-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream-deep);
+  min-width: 280px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* ═══════════════════════════════════════════
+   PASSAGE STYLES
+═══════════════════════════════════════════ */
+.passage-header {
+  margin-bottom: 20px;
+}
+
+.passage-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.passage-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.passage-source {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.passage-divider {
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
+  margin: 14px 0;
+  border-radius: 2px;
+}
+
+.passage-body {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink);
+  user-select: text;
+}
+
+.passage-body p {
+  margin-bottom: 14px;
+}
+
+.passage-body .para-label {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 12px;
+}
+
+mark.hl-yellow {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+mark.hl-yellow:hover {
+  background: #ffee33;
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.3);
+}
+
+/* Highlight toolbar */
+#hl-toolbar {
+  position: fixed;
+  display: none;
+  background: var(--navy);
+  border-radius: 20px;
+  padding: 5px 8px;
+  gap: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+  z-index: 2000;
+  align-items: center;
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+#hl-toolbar.visible {
+  display: flex;
+}
+
+/* small arrow under toolbar */
+#hl-toolbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--navy);
+}
+
+.hl-btn {
+  padding: 5px 14px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.hl-btn:hover { background: var(--gold-light); }
+
+/* ═══════════════════════════════════════════
+   QUESTION GROUP STYLES
+═══════════════════════════════════════════ */
+.q-group {
+  margin-bottom: 28px;
+}
+
+.q-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.q-group-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.q-group-instruction {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  background: rgba(212,175,55,0.07);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 14px;
+}
+
+/* Individual question card */
+.q-card {
+  background: var(--cream);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+
+.q-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.q-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.q-num-badge {
+  min-width: 26px;
+  height: 26px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.q-content {
+  flex: 1;
+}
+
+.q-stem {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* MCQ options */
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.q-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+}
+
+.q-option:hover {
+  background: var(--gold-pale);
+  border-color: var(--gold-border);
+}
+
+.q-option.selected {
+  background: var(--gold-pale);
+  border-color: var(--gold);
+}
+
+.opt-letter {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.q-option.selected .opt-letter {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: white;
+}
+
+/* Teacher answer input */
+.teacher-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.teacher-input {
+  flex: 1;
+  padding: 7px 12px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border 0.15s;
+}
+
+.teacher-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+}
+
+.btn-check {
+  padding: 7px 16px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.btn-check:hover {
+  background: var(--navy-mid);
+  box-shadow: 0 3px 10px rgba(27,42,74,0.3);
+}
+
+/* Correction panel */
+.correction-panel {
+  display: none;
+  margin-top: 10px;
+  border-top: 1px dashed var(--cream-border);
+  padding-top: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.correction-panel.open { display: flex; }
+
+.correct-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.correct-row.key-row {
+  background: var(--success-bg);
+  border: 1px solid #c8e6c9;
+}
+
+.correct-row.explain-row {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+}
+
+.correct-row.evidence-row {
+  background: var(--evidence-bg);
+  border: 1px solid var(--evidence-border);
+  padding: 0;
+  overflow: hidden;
+}
+
+.evidence-row-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.evidence-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px 6px;
+}
+
+.btn-view-evidence {
+  width: 100%;
+  padding: 7px 12px;
+  background: rgba(144,202,249,0.18);
+  border: none;
+  border-top: 1px solid var(--evidence-border);
+  color: #1565c0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.btn-view-evidence:hover {
+  background: rgba(144,202,249,0.35);
+  color: #0d47a1;
+}
+
+.btn-view-evidence.active {
+  background: #1565c0;
+  color: white;
+}
+
+/* Flash animation for evidence in passage */
+@keyframes evidenceFlash {
+  0%   { background: #ffeb3b; box-shadow: 0 0 0 3px #ffeb3b; }
+  30%  { background: #fff176; box-shadow: 0 0 0 5px rgba(255,235,59,0.5); }
+  70%  { background: #fff9c4; box-shadow: 0 0 0 3px rgba(255,235,59,0.2); }
+  100% { background: #fff59d; box-shadow: none; }
+}
+
+.evidence-flash {
+  animation: evidenceFlash 2s ease-out forwards;
+  border-radius: 3px;
+}
+
+.cr-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cr-label {
+  font-weight: 700;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.cr-content {
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.cr-content strong { color: var(--ink); }
+
+/* Key highlight in evidence */
+.evidence-keyword {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════
+   T/F/NG DISTINCTION PANEL
+═══════════════════════════════════════════ */
+:root {
+  --true-color:  #1b5e20;
+  --true-bg:     #e8f5e9;
+  --true-border: #a5d6a7;
+  --true-badge:  #2e7d32;
+  --false-color: #b71c1c;
+  --false-bg:    #ffebee;
+  --false-border:#ef9a9a;
+  --false-badge: #c62828;
+  --ng-color:    #4a148c;
+  --ng-bg:       #f3e5f5;
+  --ng-border:   #ce93d8;
+  --ng-badge:    #6a1b9a;
+}
+
+.tfng-panel {
+  margin-top: 12px;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: none;
+}
+
+.tfng-panel.open { display: block; }
+
+/* Verdict header */
+.tfng-verdict-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.tfng-verdict-bar.verdict-TRUE   { background: var(--true-bg);  border-bottom: 2px solid var(--true-border); }
+.tfng-verdict-bar.verdict-FALSE  { background: var(--false-bg); border-bottom: 2px solid var(--false-border);}
+.tfng-verdict-bar.verdict-NG     { background: var(--ng-bg);    border-bottom: 2px solid var(--ng-border);   }
+
+.tfng-verdict-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+.verdict-TRUE  .tfng-verdict-label { color: var(--true-badge);  }
+.verdict-FALSE .tfng-verdict-label { color: var(--false-badge); }
+.verdict-NG    .tfng-verdict-label { color: var(--ng-badge);    }
+
+.tfng-verdict-icon { font-size: 18px; }
+
+/* Tab strip */
+.tfng-tabs {
+  display: flex;
+  background: #f8f6f3;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.tfng-tab {
+  flex: 1;
+  padding: 8px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+
+.tfng-tab:hover { color: var(--ink); background: var(--cream-deep); }
+
+.tfng-tab.active-TRUE  { color: var(--true-badge);  border-bottom-color: var(--true-badge);  background: var(--true-bg);  }
+.tfng-tab.active-FALSE { color: var(--false-badge); border-bottom-color: var(--false-badge); background: var(--false-bg); }
+.tfng-tab.active-NG    { color: var(--ng-badge);    border-bottom-color: var(--ng-badge);    background: var(--ng-bg);    }
+
+/* Tab panes */
+.tfng-tab-content { padding: 14px; display: none; }
+.tfng-tab-content.active { display: block; }
+
+/* Blocks inside tab */
+.tfng-block {
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.tfng-block:last-child { margin-bottom: 0; }
+
+.tfng-block-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.tfng-block.evidence {
+  background: var(--evidence-bg);
+  border: 1px solid var(--evidence-border);
+}
+.tfng-block.evidence .tfng-block-label { color: #1565c0; }
+.tfng-block.evidence .tfng-block-text { color: #0d47a1; font-style: italic; }
+
+.tfng-block.reason-true  { background: var(--true-bg);  border: 1px solid var(--true-border);  }
+.tfng-block.reason-false { background: var(--false-bg); border: 1px solid var(--false-border); }
+.tfng-block.reason-ng    { background: var(--ng-bg);    border: 1px solid var(--ng-border);    }
+
+.tfng-block.reason-true  .tfng-block-label { color: var(--true-badge);  }
+.tfng-block.reason-false .tfng-block-label { color: var(--false-badge); }
+.tfng-block.reason-ng    .tfng-block-label { color: var(--ng-badge);    }
+
+.tfng-block.confusion-note {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+}
+.tfng-block.confusion-note .tfng-block-label { color: #f57f17; }
+
+.tfng-view-evidence-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: rgba(144,202,249,0.2);
+  border: 1px solid var(--evidence-border);
+  border-radius: var(--radius-sm);
+  color: #1565c0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tfng-view-evidence-btn:hover { background: rgba(144,202,249,0.45); }
+.tfng-view-evidence-btn.active { background: #1565c0; color: white; border-color: #1565c0; }
+
+/* Confusion warning badge */
+.confusion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  color: #e65100;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: auto;
+  letter-spacing: 0.04em;
+}
+
+/* Statement display inside TFNG panel */
+.tfng-statement-box {
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* Show all keys panel */
+.all-keys-panel {
+  display: none;
+  position: fixed;
+  top: 52px;
+  right: 0;
+  width: 320px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.all-keys-panel.open { display: block; }
+
+.all-keys-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold);
+}
+
+.all-keys-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.btn-close-keys {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--cream-border);
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--ink-muted);
+  transition: all 0.15s;
+}
+
+.btn-close-keys:hover {
+  background: var(--cream-deep);
+  color: var(--ink);
+}
+
+.key-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.key-table tr {
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.key-table tr:last-child { border-bottom: none; }
+
+.key-table td {
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.key-table .kt-num {
+  width: 36px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.key-table .kt-key {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.key-table .kt-type {
+  font-size: 10px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.key-table tr:nth-child(even) td { background: var(--cream-deep); }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--cream-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c8bfb0; }
+
+/* ── SIDEBAR VIEWS ── */
+#sidebar-view-questions {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#sidebar-view-questions.hidden { display: none; }
+
+#sidebar-view-report {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  gap: 10px;
+  min-height: 0;
+}
+
+#sidebar-view-report.visible { display: flex; }
+
+#report-content {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#report-content.visible { display: flex; }
+
+/* ── SIDEBAR NAV TABS ── */
+.sidebar-nav {
+  display: flex;
+  gap: 0;
+  padding: 10px 14px 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.snav-tab {
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.snav-tab:hover { color: rgba(255,255,255,0.75); }
+
+.snav-tab.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+}
+
+/* ── REPORT (sidebar view) ── */
+#sidebar-view-report {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 12px;
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.report-hint-icon { font-size: 28px; }
+
+.report-group-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.report-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.06);
+}
+
+.report-group-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.05em;
+}
+
+.report-group-score {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.report-group-score.good  { background: rgba(76,175,80,0.25); color: #a5d6a7; }
+.report-group-score.mid   { background: rgba(255,193,7,0.2);  color: #fff176; }
+.report-group-score.bad   { background: rgba(244,67,54,0.2);  color: #ef9a9a; }
+
+.report-q-list {
+  padding: 6px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-q-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+}
+
+.rq-num {
+  width: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+}
+
+.rq-status { font-size: 12px; }
+
+.rq-diag {
+  flex: 1;
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+}
+
+.report-summary-box {
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+
+.report-summary-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.report-focus-item {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+.report-focus-item:last-child { border-bottom: none; }
+
+.report-focus-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.btn-export-report {
+  width: 100%;
+  padding: 9px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.btn-export-report:hover { background: var(--gold-light); }
+
+/* ── QUESTION TYPE BADGE (clickable) ── */
+.q-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--navy);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--navy);
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.q-type-badge:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.q-type-badge .tip-icon {
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.6;
+}
+
+/* ── TIPS PANEL (slide-in từ phải) ── */
+.tips-panel {
+  position: fixed;
+  top: 52px;
+  right: -420px;
+  width: 400px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -6px 0 30px rgba(0,0,0,0.12);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+.tips-panel.open { right: 0; }
+
+.tips-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+  background: var(--navy);
+}
+
+.tips-panel-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(212,175,55,0.7);
+  margin-bottom: 4px;
+}
+
+.tips-panel-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: white;
+  font-style: italic;
+}
+
+.tips-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Tips content blocks */
+.tips-section {
+  margin-bottom: 20px;
+}
+
+.tips-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.tips-overview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  background: var(--cream-deep);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--navy);
+}
+
+.tips-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.tips-item-num {
+  width: 22px;
+  height: 22px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tips-item-text {
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.tips-item-text strong { color: var(--navy); }
+
+.tips-trap {
+  display: flex;
+  gap: 8px;
+  background: #fff3e0;
+  border: 1px solid #ffcc02;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #7b4a00;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-trap-icon { flex-shrink: 0; font-size: 14px; }
+
+.tips-band {
+  display: flex;
+  gap: 8px;
+  background: linear-gradient(135deg, #f3e5f5, #e8f5e9);
+  border: 1px solid #ce93d8;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-band-icon { flex-shrink: 0; font-size: 14px; }
+
+/* ── FLOWCHART ── */
+.cloze-notes-box {
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin: 10px 0 6px;
+  background: #fff;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.cloze-notes-title {
+  font-weight: 700;
+  font-size: 13px;
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.cloze-aim { color: var(--ink-soft); margin-bottom: 4px; }
+.cloze-heading { font-weight: 700; color: var(--ink); margin-top: 8px; margin-bottom: 2px; }
+.cloze-line { color: var(--ink-soft); }
+.cloze-bullet { color: var(--ink-soft); padding-left: 22px; position: relative; }
+.cloze-bullet::before { content: "○"; position: absolute; left: 4px; color: var(--ink-muted); font-size: 11px; top: 2px; }
+.cloze-blank-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: middle;
+}
+.cloze-blank-wrap b { color: var(--ink); font-size: 12.5px; }
+.cloze-input {
+  border: none;
+  border-bottom: 2px solid var(--gold);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--ink);
+  width: 130px;
+  padding: 0 4px 1px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.cloze-input:focus { border-bottom-color: var(--navy); }
+.cloze-correction-slot {
+  border-top: 1px solid var(--cream-border);
+  padding: 8px 0 2px;
+  margin-top: 4px;
+}
+.cloze-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.cloze-check-num {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--navy);
+  min-width: 28px;
+}
+
+/* ── FLOWCHART ── */
+.flowchart-box {
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin: 12px 0 4px;
+  background: var(--cream-deep);
+}
+.flowchart-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.fc-block {
+  border: 1px solid var(--ink-muted);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  background: #fff;
+  margin-bottom: 0;
+}
+.fc-block-label {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.fc-line {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.fc-spacer { height: 6px; }
+.fc-arrow {
+  text-align: center;
+  font-size: 18px;
+  color: var(--ink-muted);
+  padding: 4px 0;
+}
+
+/* ── WORD BANK ── */
+.word-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  margin: 8px 0 4px;
+}
+.wb-item {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-right: 1px solid var(--cream-border);
+}
+.wb-item:last-child { border-right: none; }
+.wb-letter {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* ── RESEARCHER LIST ── */
+.researcher-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0 4px;
+  margin-bottom: 4px;
+}
+.researcher-tag {
+  background: var(--navy);
+  color: var(--gold);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* ── SUMMARY PARAGRAPH BOX ── */
+.summary-para-box {
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin: 10px 0 4px;
+  background: #fff;
+}
+.summary-para-title {
+  font-weight: 700;
+  font-size: 12.5px;
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.summary-para-text {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.85;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-muted);
+}
+
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.empty-state-sub { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Highlight toolbar (floating) -->
+<div id="hl-toolbar">
+  <button class="hl-btn" onclick="applyHighlight()">✏️ Highlight</button>
+</div>
+
+<!-- All Keys Panel (slide-in) -->
+<div id="all-keys-panel" class="all-keys-panel">
+  <div class="all-keys-header">
+    <span class="all-keys-title">Answer Key — All 40 Qs</span>
+    <button class="btn-close-keys" onclick="toggleAllKeys(false)">✕</button>
+  </div>
+  <table class="key-table" id="key-table-body"></table>
+</div>
+
+<!-- Tips Panel (slide-in từ phải, click vào question type badge) -->
+<div id="tips-panel" class="tips-panel">
+  <div class="tips-panel-header">
+    <div>
+      <div class="tips-panel-eyebrow">Hướng dẫn dạng bài</div>
+      <div class="tips-panel-title" id="tips-panel-title">—</div>
+    </div>
+    <button class="btn-close-keys" onclick="closeTipsPanel()">✕</button>
+  </div>
+  <div id="tips-panel-body" class="tips-panel-body"></div>
+</div>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">G.EDU</div>
+      <div class="logo-sub">Teacher Edition · Reading</div>
+      <div class="logo-test-name" id="sidebar-test-name">—</div>
+    </div>
+
+    <!-- Sidebar Nav -->
+    <div class="sidebar-nav">
+      <button class="snav-tab active" id="snav-questions" onclick="switchSidebarView('questions')">📋 Câu hỏi</button>
+      <button class="snav-tab" id="snav-report" onclick="switchSidebarView('report')">📊 Báo cáo</button>
+    </div>
+
+    <!-- VIEW: Questions -->
+    <div id="sidebar-view-questions">
+    <!-- Passage Tabs -->
+    <div class="passage-tabs">
+      <button class="passage-tab active" onclick="switchPassage(0)" id="tab-0">P1</button>
+      <button class="passage-tab" onclick="switchPassage(1)" id="tab-1">P2</button>
+      <button class="passage-tab" onclick="switchPassage(2)" id="tab-2">P3</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Question Map</div>
+    </div>
+    <div class="q-map-wrap">
+      <div class="q-map-grid" id="q-map"></div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn-sidebar btn-show-keys" onclick="toggleAllKeys(true)">📋 Show All Keys</button>
+      <button class="btn-sidebar btn-clear-hl" onclick="clearAllHighlights()">🧹 Clear Highlights</button>
+    </div>
+    </div><!-- end sidebar-view-questions -->
+
+    <!-- VIEW: Báo cáo -->
+    <div id="sidebar-view-report">
+      <div class="report-hint" id="report-hint">
+        <div class="report-hint-icon">📝</div>
+        <div>Check các câu hỏi bên phải để tạo báo cáo phân tích lỗi cho học sinh.</div>
+      </div>
+      <div id="report-content"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Topbar -->
+    <div id="topbar">
+      <span class="topbar-title">Reading Correction Tool</span>
+      <span class="topbar-meta" id="topbar-meta">IELTS Academic — Full Test</span>
+      <span class="topbar-passage-badge" id="passage-badge">Passage 1</span>
+    </div>
+
+    <!-- Split Container -->
+    <div id="split-container">
+      <!-- Left: Passage -->
+      <div id="passage-pane">
+        <div id="passage-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Splitter -->
+      <div id="splitter"></div>
+
+      <!-- Right: Questions -->
+      <div id="questions-pane">
+        <div id="questions-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TEACHER_DATA — JSON TEMPLATE
+   Điền dữ liệu vào đây để tạo bài test. Không sửa code bên dưới.
+   ───────────────────────────────────────────────────────────────
+   SCHEMA:
+   {
+     meta: {
+       title: string,        // Tên bộ đề, hiển thị ở topbar
+       testName: string,     // Tên test cụ thể, hiển thị ở sidebar (vd: "Reading Test 3")
+       totalQuestions: number // Tổng số câu (thường 40)
+     },
+     passages: [
+       {
+         id: number,         // 0, 1, 2 (tương ứng P1, P2, P3)
+         title: string,      // Tiêu đề bài đọc
+         source: string,     // Nguồn bài đọc (vd: "Adapted from Nature, 2023")
+         qRange: [start, end], // Phạm vi câu hỏi (vd: [1, 13])
+         paragraphs: [
+           {
+             label: string,  // Nhãn đoạn: "A", "B", "C"...
+             text: string    // Nội dung đoạn văn
+           }
+         ]
+       }
+     ],
+     questions: [
+       {
+         passageId: number,  // 0, 1, hoặc 2
+         groupId: string,    // ID nhóm, vd: "P1G1"
+         type: string,       // Loại câu: "TRUE/FALSE/NOT GIVEN" | "Multiple Choice" |
+                             //   "Short Answer Questions" | "Matching Headings" |
+                             //   "Matching Information" | "Summary Completion"
+         instruction: string, // Hướng dẫn làm bài (tiếng Anh, như đề IELTS)
+         items: [
+           {
+             id: number,     // Số thứ tự câu (1–40, liên tục)
+             stem: string,   // Nội dung câu hỏi / câu phát biểu
+             options: [      // CHỈ dùng cho Multiple Choice
+               "A. ...",     // Format: "A. nội dung"
+               "B. ...",
+               "C. ...",
+               "D. ..."
+             ],
+             key: string,    // Đáp án đúng. MCQ: "A"/"B"/"C"/"D". T/F/NG: "TRUE"/"FALSE"/"NOT GIVEN"
+                             // Short Answer: từ/cụm từ trích từ bài. Nhiều đáp án: "ans1 / ans2"
+             explanation: string, // Giải thích bằng tiếng Việt
+             evidence: string,    // Câu/cụm từ trích nguyên văn từ bài làm evidence
+             // ── CHỈ DÙNG CHO T/F/NG ──────────────────────────────────────
+             whyThisVerdict: string,  // Giải thích tại sao đáp án là TRUE/FALSE/NOT GIVEN
+             whyNotFalse: string,     // (Nếu key=NOT GIVEN) Tại sao KHÔNG phải FALSE?
+             whyNotNG: string,        // (Nếu key=FALSE) Tại sao KHÔNG phải NOT GIVEN?
+             // Học sinh hay nhầm FALSE↔NOT GIVEN, 2 field trên phân biệt rõ ràng
+             confusionNote: string    // Bẫy phổ biến học sinh hay mắc với câu này
+           }
+         ]
+       }
+     ]
+   }
+═══════════════════════════════════════════════════════════════ */
+const TEACHER_DATA = {
+  meta: {
+    title: "IELTS Academic Reading",
+    testName: "Reading Test 5",
+    totalQuestions: 40
+  },
+
+  passages: [
+    {
+      id: 0,
+      title: "Reef fish study",
+      source: "",
+      qRange: [1, 13],
+      paragraphs: [
+        { label: "A", text: "It is a widely held belief among those who study animals that larger size conveys some form of advantage throughout life. The idea that certain body characteristics may influence a prey's ability to survive when being attacked by a predator has received considerable attention in the past, and has been applied to a wide range of both animals and habitats. Body size, weight, growth rate, overall condition, sensory development and escape speed have all been linked to survival. Of these, body size has received the most attention from researchers, which has subsequently led to the development of a number of theories on how this characteristic may influence the predator-prey relationship. One of the most popular of these is known as the 'bigger is better' hypothesis. This theory predicts that larger body size should increase an individual's ability to escape from a predator due to the characteristics associated with this, such as overall strength and visual development. Bigger is thought to be better, but is this always the case?" },
+        { label: "B", text: "Compared with other habitats and ecosystems, not a great deal is known about predator-prey relationships within tropical reef communities. What we do know is largely limited to predator identity and, to some extent, to what these predators eat. But what drives these interactions and how does body size influence the outcome? How would fish populations respond to the removal of certain predators from a reef fish community? It is precisely these questions that have led our research team to Lizard Island, in the northern sector of the Great Barrier Reef. We want to examine the predator-prey relationship during the 'early juvenile' or larval phase of tropical fish, and determine whether a predator's choice of prey is influenced by factors such as the prey's size, weight and swimming speed, as these characteristics vary from individual to individual at the beginning of the juvenile stage." },
+        { label: "C", text: "Most coral reef fish have a life cycle consisting of an open ocean larval phase followed by a juvenile to adult phase near the reef. The transition between the two stages is marked by rapid and dramatic changes in the body of the fish, and a sudden move from the open ocean to coral reef habitats. This point is commonly known as 'settlement'. Not surprisingly, it is also characterised by increased levels of mortality in the first 48 hours following settlement, as individuals are forced to adapt to life not only on the reef but also with a previously unknown set of predators." },
+        { label: "D", text: "However, studying the interactions between predators and prey during this phase is no easy task. On the northern Great Barrier Reef, coral reef fish settlement usually occurs within 2-3 days of a new moon during the warmer summer months. These short windows of opportunity, combined with the difficulties associated with working underwater, transporting fish and adapting them to the laboratory, often make research a daunting task. These obstacles are overcome using a combination of innovative techniques, long working hours and a measure of sheer persistence. We collect the larval fish immediately prior to settlement using purpose-built traps that use artificial light to attract and contain fish of this life stage only. These fish are subsequently transported to an aquarium, along with predatory fish, before being used in a series of aquarium and field-based trials." },
+        { label: "E", text: "According to the 'bigger is better' hypothesis, being larger at the time of settlement should result in an increased chance of surviving an attack by a predator during the period immediately following settlement. However, our initial research shows that this is not always true. There may be several reasons for this." },
+        { label: "F", text: "Communities of reef-based predators can differ considerably over quite small distances. Species that are abundant in one location may be particularly rare in a similar habitat just 100 metres away. In the same way that different predators prefer different types of prey, so too do they prefer different sizes of prey. This relationship is driven by physical characteristics of predators, such as mouth size, and behavioural differences between different predator species. As a result, the predator community into which a reef fish settles may very well determine which individuals survive." },
+        { label: "G", text: "So why don't larger individuals survive more often than smaller fish over this period? The answer may well lie in an alternative hypothesis known as 'optimal foraging theory'. According to this theory, being either very large or very small in size should assist prey to escape during a predatory encounter. The theory predicts that a predator should prefer those individuals that provide the greatest energy return. This is generally a trade-off between the potential energy intake from eating a fish and the amount of energy required to catch it. Larger prey provide a higher energy return but smaller prey generally require less energy to catch. This usually results in a preference for medium-sized prey." },
+        { label: "H", text: "At the time of settlement, juvenile reef fish vary in the characteristics that can help them survive a predatory attack. However, these characteristics are not strongly associated with body size. For example, larger individuals are not necessarily faster. This means that they may be easier to catch than smaller prey. If this is the case then, according to the optimal foraging theory, predators should prefer larger prey because of their greater energy return. Consequently, larger prey individuals may be targeted by some predators at the time of settlement. Our research hopes to show that larger size may, in fact, be a distinct disadvantage during certain life stages." }
+      ]
+    },
+    {
+      id: 1,
+      title: "Will Eating Less Make You Live Longer?",
+      source: "",
+      qRange: [14, 26],
+      paragraphs: [
+        { label: "A", text: "Calorie restriction, or 'semi-starvation' as some refer to it, has been proven to extend lifespan in many living organisms from yeast to mice, but the picture for primates, including humans, is not so clear. Research published by a team at the University of Wisconsin in the United States shows that rhesus monkeys also live longer on a calorie-restricted diet. But those findings disagree with research by the National Institute on Aging (NIA) in Maryland, also in the United States. Rozalyn Anderson, of the Wisconsin team, says the research is not intended as a recommendation of calorie restriction. 'I find the idea monumentally unattractive!' she says. 'We study it because it is so effective at delaying ageing and the onset of age-related disease. It's a way to tease out what it is that creates increased disease vulnerability as a function of age.'" },
+        { label: "B", text: "Both groups started long-term trials on rhesus monkeys in the late 1980s to determine whether calorie restriction would extend the lifespan of primates. In mice, many experiments had come to the same finding: feed them a diet with 30% fewer calories and see a lifespan extension of 40%. The monkey trials were set up in a similar way: researchers took the calorie content of a standard monkey diet, cut it by 30% (while continuing to supply all essential nutrients) and monitored whether those monkeys lived longer, healthier lives than those on the standard diet." },
+        { label: "C", text: "In 2009, with the monkeys approaching old age, preliminary findings of the two trials started coming in. For the Wisconsin monkeys, calorie restriction seemed to be working. Compared to well-fed control animals, the lean monkeys were living longer and suffering less from the diseases of ageing: diabetes, heart disease and brain diseases. However, in 2012 the NIA results emerged with a dramatically different conclusion: their monkeys were not living any longer than the controls, although they were healthier." },
+        { label: "D", text: "The Wisconsin group's latest results confirm that their calorie-restricted monkeys are living longer than the controls. They also offer a possible explanation of why the two groups' findings don't agree, and that lies in the treatment of the control group. The Wisconsin study began with monkeys in early adulthood. Initially, all the monkeys were allowed to eat as much as they liked. A few months into the trial, the monkeys were placed into one of two groups: the controls (who continued to be fed as much as they wished) and the calorie-restricted monkeys (who were given an individualised diet of 30% less than they were previously eating)." },
+        { label: "E", text: "The NIA study differed in two ways. First, the control group of monkeys were not allowed to eat as much as they wished. They were given a diet considered to represent a normal calorie count, while the calorie-restricted monkeys were fed 30% less than that. Second, whereas the Wisconsin monkeys were given highly processed food high in sucrose, making it easy to standardise, the NIA diet was based on whole grains, fish oils, and was very low in sugar. These different settings for the normal control diet may provide an explanation of why the two groups showed different results." },
+        { label: "F", text: "The Wisconsin group may in effect have studied the effects of 'overeating'. Their control animals weighed up to 10% more than average for their age and gender. Compared to them, the calorie-restricted animals not only suffered fewer diseases, they lived longer. Julie Mattison, head of the NIA study, observes that an overweight person who goes to a fast food restaurant every day will obviously benefit if their calories are cut back by 30%." },
+        { label: "G", text: "The NIA study fed their control monkeys what they considered a 'standard' caloric intake and saw that longevity for monkeys that were fed 30% less was the same. But in Anderson's view, the NIA control monkeys were not fed enough; the NIA was calorie restricting both groups of animals. Their older female control monkeys, for example, weighed nearly 20% less than the national average. Indeed, Anderson points out that several of the NIA control monkeys have lived past the age of 40, far exceeding the 27-year average lifespan for captive rhesus monkeys. 'That's the maximum lifespan ever detected for the species, so the idea that their intervention is doing nothing is really at odds with the data,' says Anderson." },
+        { label: "H", text: "However, neither group had the right notion of a standard diet according to Leonie Heilbronn, who researches calorie restriction and healthy ageing at the University of Adelaide in Australia. Heilbronn points out that the NIA controls were a very healthy set of monkeys and leaner than a control monkey should be. On the other hand, she notes, the Wisconsin controls were a little bigger than they had to be. On balance, Heilbronn agrees with the Wisconsin researcher's argument. 'I think these studies suggest calorie restriction definitely will increase lifespan,' she says." },
+        { label: "I", text: "Both studies agree that cutting calories is beneficial to health — in both cases the calorie-restricted monkeys had fewer diseases related to ageing. As to the question of whether calorie restriction extends lifespan in primates, Anderson and Mattison are currently working together to compare the two studies' raw data. They plan to co-publish a joint analysis. The current data conflict will ultimately provide deeper insights into ageing, Anderson predicts. 'The fact the two studies were set up differently, asking the same question in different ways — I think we will gain maximally from that.'" }
+      ]
+    },
+    {
+      id: 2,
+      title: "Saving the Skink",
+      source: "",
+      qRange: [27, 40],
+      paragraphs: [
+        { label: "A", text: "New Zealand's reptiles come in three forms: the tuatara, the geckos and the skinks. With their gleaming scales, long bodies and often surprisingly short limbs, skinks are instantly recognisable. There are more than 90 species, half of which still await formal description. Identification depends on where specimens are found, and such minutiae as the number of scales on their toes. Two of the largest species of skink – the grand and the Otago – are found only in Otago, in New Zealand's South Island. Skinks, being reptiles, need to regulate their temperature, and lie on sunny rocks to absorb heat. However, the grand and Otago are the only kinds that do not hibernate through winter; when snow can fall even in summer in Otago, there is no point in them lying dormant for extended periods. Like all other New Zealand reptiles except tuatara and the egg-laying Suter's skink, they give birth to tiny baby lizards. Today, the Otago and grand skinks are lucky to reach five years of age in the wild, although in zoos or research centres they can live beyond thirty." },
+        { label: "B", text: "Unfortunately, extinction may loom for these reptiles. With any decline in New Zealand fauna, predation is always suspected, so the efforts of the Department of Conservation (DOC) have focused on controlling specific pests. An example was a six-year project to control the feral cats on the Otago Skink Reserve, launched in the 1990s. Despite the capture of hundreds of cats, skinks showed no signs of recovery; indeed, there were further declines. The trapping programme also revealed rats and hedgehogs to be predators." },
+        { label: "C", text: "Parasite infections are also thought to be on the rise. Although no direct health implications have been detected the trend is a concern, as it may signal a subtle deterioration in the skinks' living environment. Infection with mites is suspected of inhibiting reproduction among captive animals." },
+        { label: "D", text: "Another potential threat is habitat loss. Eight hundred years ago, Otago was covered in forest. However, extensive burning produced wide open tussock country. The skinks' response to this change isn't known, nor what their habitat was in the earlier environment, with its predominance of shrubs and trees. Furthermore, recent intensive farming has led to poor soil. Even if we had the answer to the eradication of predators, we haven't a clue to the habitat we should be recreating for the skinks, or if where they persist is best for conservation." },
+        { label: "E", text: "It is also puzzling that grands and Otagos are disappearing more rapidly than other species in the same region. The explanation likely lies in their delayed sexual maturity. Taking five years before you can breed is a handicap, since there is little likelihood of surviving that long. If survivors have only two offspring annually, they do little to remedy the situation. The commoner skinks mature earlier and produce more offspring, thereby doing more to counter predator pressure. Not that there is room for complacency concerning these species. As more is learned about the size of skink populations, it becomes clear that even common species may be facing a doubtful future." },
+        { label: "F", text: "So far, DOC's efforts to eliminate specific predators have not resulted in a recovery of skink numbers. The prediction that less than six years is all the Otagos and grands have left is supported by data from surveys conducted outside the protected area between 1984 and 2002. These show that more than 50 per cent of sub-populations of both skinks have died out over the past years. Populations in other regions are believed to be smaller, although access issues on some properties limit knowledge. No more than five years remain in which to turn things around – a close call considering it will be at least three before detectable response in the populations can be expected owing to their low breeding rate." },
+        { label: "G", text: "DOC's recovery-programme team has recently embarked upon an experiment to extend nearly two kilometres of mammal-proof fencing around a population of Otagos and grands in the Macraes Flat reserve. Choosing a site was difficult, as with a limited budget and the high cost of the fencing it had to be small. It also had to include vacant space and resources for a growing population. An added complication was that grands and Otagos have subtly different environmental preferences, both of which need catering for." },
+        { label: "H", text: "Because of the danger of imminent extinction, the team has also had to develop emergency captive-management techniques. Specially permitted breeders, who have had some success in breeding the Otago in captivity, are now developing techniques to breed grands. Captive management, however, is a last resort. The priority is to manage and protect skinks in the wild." },
+        { label: "I", text: "Getting the public to understand the plight of these creatures is essential. Without public support, their chances are slim. Conservation is as much driven by public opinion as it is by political decisions. In New Zealand, the situation is more pressing than just about anywhere else on the planet because many of its native birds and lizards have simply not evolved to defend themselves against species introduced in the last few hundred years. In the once-isolated islands that form New Zealand, ecosystem collapse didn't happen 5000 years ago or even 500 years ago; it's happening now." },
+        { label: "J", text: "Fortunately, DOC no longer faces these problems alone. The challenge has been taken up by a group of conservationists representing business, science and agriculture. Central Otago Ecological Trust (COET) aims to establish a refuge for the reintroduction of native species. It has identified suitable habitat and, with the generous support of a local farmer with grazing land there, has begun the construction of a mammal-proof fence to protect a 24-hectare area. The recovery programme and COET provide hope that skinks might once again flourish." }
+      ]
+    }
+  ],
+
+  questions: [
+    /* ══════════════════════════════════════════
+       PASSAGE 1 — Q1–4 TRUE/FALSE/NOT GIVEN
+    ══════════════════════════════════════════ */
+    {
+      passageId: 0,
+      groupId: "P1G1",
+      type: "TRUE/FALSE/NOT GIVEN",
+      instruction: "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.",
+      items: [
+        {
+          id: 1,
+          stem: "Research to date has concentrated on the importance of escape speed in surviving an attack by a predator.",
+          key: "FALSE",
+          explanation: "Bài nói body size nhận được nhiều sự chú ý nhất từ các nhà nghiên cứu, không phải escape speed.",
+          evidence: "Of these, body size has received the most attention from researchers",
+          whyThisVerdict: "Câu hỏi nói 'escape speed' là trọng tâm nghiên cứu, nhưng bài đọc khẳng định rõ 'body size has received the most attention' — trực tiếp mâu thuẫn.",
+          whyNotNG: "Bài đọc không im lặng về vấn đề này mà nêu rõ body size mới là yếu tố được nghiên cứu nhiều nhất, cho nên đây là FALSE chứ không phải NOT GIVEN.",
+          whyNotFalse: "",
+          confusionNote: "Học sinh dễ nhầm NOT GIVEN vì escape speed có được đề cập trong danh sách, nhưng bài khẳng định body size mới là trọng tâm — đây là sự mâu thuẫn rõ ràng."
+        },
+        {
+          id: 2,
+          stem: "According to the 'bigger is better' hypothesis, larger animals have better eyesight.",
+          key: "TRUE",
+          explanation: "'Visual development' trong bài tương đương với 'eyesight' — đây là một trong những đặc điểm được dự đoán theo 'bigger is better'.",
+          evidence: "larger body size should increase an individual's ability to escape from a predator due to the characteristics associated with this, such as overall strength and visual development",
+          whyThisVerdict: "'Visual development' = khả năng thị giác tốt hơn = 'better eyesight'. Câu hỏi paraphrase đúng ý bài nên là TRUE.",
+          whyNotNG: "",
+          whyNotFalse: "",
+          confusionNote: "Học sinh có thể không nhận ra 'visual development' = 'better eyesight' vì đây là paraphrase. Cần chú ý đọc kỹ để nhận biết."
+        },
+        {
+          id: 3,
+          stem: "Early-juvenile reef fish share similar characteristics.",
+          key: "FALSE",
+          explanation: "Bài nêu rõ các đặc điểm của cá juvenile biến đổi từ cá thể này sang cá thể khác, không giống nhau.",
+          evidence: "these characteristics vary from individual to individual at the beginning of the juvenile stage",
+          whyThisVerdict: "Câu hỏi nói 'share similar characteristics' (chia sẻ đặc điểm giống nhau), nhưng bài nói 'vary from individual to individual' (thay đổi giữa các cá thể) — trực tiếp mâu thuẫn.",
+          whyNotNG: "Bài đề cập rõ ràng đến sự biến đổi giữa các cá thể ở giai đoạn juvenile — không thiếu thông tin, đây là mâu thuẫn.",
+          whyNotFalse: "",
+          confusionNote: "Bẫy: từ 'early-juvenile' có trong đề nhưng bài nói characteristics 'vary', không 'share'. Học sinh đọc lướt có thể bỏ qua từ 'vary'."
+        },
+        {
+          id: 4,
+          stem: "Fully developed reef fish have a slower swimming speed than juveniles.",
+          key: "NOT GIVEN",
+          explanation: "Bài không so sánh tốc độ bơi giữa cá trưởng thành và cá juvenile.",
+          evidence: "",
+          whyThisVerdict: "Bài chỉ đề cập swimming speed như một yếu tố ảnh hưởng đến mối quan hệ săn mồi ở giai đoạn juvenile, không hề so sánh tốc độ bơi giữa cá adult và juvenile.",
+          whyNotFalse: "Không có thông tin nào trong bài để phủ nhận hay xác nhận câu này — không thể kết luận là FALSE.",
+          whyNotNG: "",
+          confusionNote: "Học sinh có thể cố tìm câu về swimming speed trong bài, nhưng không có thông tin so sánh giữa adult và juvenile."
+        }
+      ]
+    },
+    /* Q5–7 Flow-chart completion */
+    {
+      passageId: 0,
+      groupId: "P1G2",
+      type: "Summary Completion",
+      renderAs: "flowchart",
+      instruction: "Complete the flow-chart below.\nWrite NO MORE THAN TWO WORDS from the passage for each answer.",
+      flowchartTitle: "Life cycle of fish in the Lizard Island study",
+      flowchartBlocks: [
+        { label: "Phase 1: Larval stage", lines: ["takes place in the <b>(5)</b> ………………………"] },
+        { arrow: true },
+        { label: "Phase 2: Juvenile stage", lines: ["takes place close to the <b>(6)</b> ………………………", "", "the move from one habitat to another is called settlement", "<b>(7)</b> ………………………  rates are high in the early part of this stage"] },
+        { arrow: true },
+        { label: "Phase 3: Adult stage", lines: [] }
+      ],
+      items: [
+        {
+          id: 5,
+          stem: "takes place in the <b>(5)</b> ………………",
+          key: "open ocean",
+          explanation: "Giai đoạn larval diễn ra ở đại dương mở (open ocean) trước khi cá di chuyển đến rạn san hô.",
+          evidence: "Most coral reef fish have a life cycle consisting of an open ocean larval phase"
+        },
+        {
+          id: 6,
+          stem: "takes place close to the <b>(6)</b> ………………",
+          key: "reef",
+          explanation: "Giai đoạn juvenile diễn ra gần rạn san hô (reef).",
+          evidence: "followed by a juvenile to adult phase near the reef"
+        },
+        {
+          id: 7,
+          stem: "<b>(7)</b> ……………… rates are high in the early part of this stage",
+          key: "mortality",
+          explanation: "Tỷ lệ tử vong (mortality) cao trong 48 giờ đầu sau khi settlement.",
+          evidence: "it is also characterised by increased levels of mortality in the first 48 hours following settlement"
+        }
+      ]
+    },
+    /* Q8–13 Notes completion */
+    {
+      passageId: 0,
+      groupId: "P1G3",
+      type: "Summary Completion",
+      renderAs: "cloze_notes",
+      instruction: "Complete the notes below.\nWrite NO MORE THAN TWO WORDS from the passage for each answer.",
+      notesTitle: "Lizard Island study",
+      notesContent: [
+        { type: "aim", text: "<b>Aim:</b> to study the relationship between predator and prey in juvenile reef fish" },
+        { type: "heading", text: "<b>Problems:</b>" },
+        { type: "line", text: "i) time-change of habitat takes place in summer and is linked to the", blank: 8 },
+        { type: "plain", text: "ii) working conditions" },
+        { type: "line", text: "iii) adaptation-difficult to move and settle fish into the", blank: 9 },
+        { type: "heading", text: "<b>Method:</b>" },
+        { type: "bullet", text: "larval fish are drawn into a special trap with the aid of", blank: 10 },
+        { type: "bullet_start", text: "", blank: 11, suffix: "are also collected" },
+        { type: "plain_bullet", text: "both undergo trials" },
+        { type: "heading", text: "<b>Possible reasons why 'bigger' is not always 'better':</b>" },
+        { type: "bullet_plain", text: "the number and type of predatory fish on the reef can vary from place to place" },
+        { type: "bullet_mid", text: "physical features (e.g.", blank: 12, suffix: ") affect which prey a predator can eat" },
+        { type: "bullet_mid", text: "optimal foraging theory suggests that the most common choice of prey should be", blank: 13, suffix: "in size" },
+        { type: "bullet_plain", text: "large juvenile fish may swim slowly and so may be targeted more often" }
+      ],
+      items: [
+        {
+          id: 8,
+          stem: "time-change of habitat takes place in summer and is linked to the <b>(8)</b>",
+          key: "new moon",
+          explanation: "Sự định cư của cá xảy ra trong vài ngày sau trăng non (new moon) vào mùa hè.",
+          evidence: "coral reef fish settlement usually occurs within 2-3 days of a new moon during the warmer summer months"
+        },
+        {
+          id: 9,
+          stem: "adaptation-difficult to move and settle fish into the <b>(9)</b>",
+          key: "laboratory",
+          explanation: "Việc vận chuyển và cho cá thích nghi với phòng thí nghiệm là một thách thức lớn.",
+          evidence: "the difficulties associated with working underwater, transporting fish and adapting them to the laboratory"
+        },
+        {
+          id: 10,
+          stem: "larval fish are drawn into a special trap with the aid of <b>(10)</b>",
+          key: "artificial light",
+          explanation: "Cá larval được thu hút vào bẫy bằng ánh sáng nhân tạo (artificial light).",
+          evidence: "purpose-built traps that use artificial light to attract and contain fish of this life stage only"
+        },
+        {
+          id: 11,
+          stem: "<b>(11)</b> are also collected",
+          key: "predatory fish",
+          explanation: "Ngoài cá larval, các nhà nghiên cứu cũng thu thập cá săn mồi (predatory fish).",
+          evidence: "These fish are subsequently transported to an aquarium, along with predatory fish"
+        },
+        {
+          id: 12,
+          stem: "physical features (e.g. <b>(12)</b>) affect which prey a predator can eat",
+          key: "mouth size",
+          explanation: "Kích thước miệng (mouth size) là đặc điểm vật lý ảnh hưởng đến loại con mồi mà kẻ săn mồi có thể ăn.",
+          evidence: "This relationship is driven by physical characteristics of predators, such as mouth size"
+        },
+        {
+          id: 13,
+          stem: "optimal foraging theory suggests that the most common choice of prey should be <b>(13)</b> in size",
+          key: "medium",
+          explanation: "Theo lý thuyết optimal foraging, kẻ săn mồi thường thích con mồi có kích thước trung bình (medium).",
+          evidence: "This usually results in a preference for medium-sized prey"
+        }
+      ]
+    },
+
+    /* ══════════════════════════════════════════
+       PASSAGE 2 — Q14–19 Matching Information (Paragraphs)
+    ══════════════════════════════════════════ */
+    {
+      passageId: 1,
+      groupId: "P2G1",
+      type: "Matching Information",
+      instruction: "Reading Passage 2 has nine paragraphs, A–I. Which paragraph contains the following information? Choose the correct letter, A–I, in boxes 14–19.",
+      items: [
+        {
+          id: 14,
+          stem: "a reference to studies based on the same level of calorie reduction with different animals",
+          key: "B",
+          explanation: "Đoạn B đề cập đến các thí nghiệm trên chuột với mức cắt giảm calo 30% — cùng mức với thí nghiệm trên khỉ.",
+          evidence: "feed them a diet with 30% fewer calories and see a lifespan extension of 40%. The monkey trials were set up in a similar way"
+        },
+        {
+          id: 15,
+          stem: "a comment that some control monkeys in one study reached an older age than normal for animals of their kind",
+          key: "G",
+          explanation: "Đoạn G đề cập một số khỉ đối chứng của NIA sống qua 40 tuổi, vượt xa tuổi thọ trung bình 27 năm.",
+          evidence: "several of the NIA control monkeys have lived past the age of 40, far exceeding the 27-year average lifespan for captive rhesus monkeys"
+        },
+        {
+          id: 16,
+          stem: "distinctions between the types of food in each study that may have led to a contrast in findings",
+          key: "E",
+          explanation: "Đoạn E giải thích sự khác biệt về loại thức ăn giữa hai nghiên cứu (processed food vs whole grains) có thể gây ra kết quả khác nhau.",
+          evidence: "whereas the Wisconsin monkeys were given highly processed food high in sucrose... the NIA diet was based on whole grains, fish oils, and was very low in sugar. These different settings... may provide an explanation of why the two groups showed different results"
+        },
+        {
+          id: 17,
+          stem: "examples of health problems which monkeys on calorie-restricted diets were less likely to get",
+          key: "C",
+          explanation: "Đoạn C liệt kê các bệnh như tiểu đường, bệnh tim, bệnh não mà khỉ ăn ít calo ít mắc phải hơn.",
+          evidence: "the lean monkeys were living longer and suffering less from the diseases of ageing: diabetes, heart disease and brain diseases"
+        },
+        {
+          id: 18,
+          stem: "a researcher's negative opinion of a calorie-restricted diet",
+          key: "A",
+          explanation: "Đoạn A trích dẫn Anderson nói bà thấy ý tưởng hạn chế calo là 'monumentally unattractive'.",
+          evidence: "'I find the idea monumentally unattractive!' she says"
+        },
+        {
+          id: 19,
+          stem: "a reference to the stage in the monkeys' lives at which research commenced in one study",
+          key: "D",
+          explanation: "Đoạn D đề cập nghiên cứu Wisconsin bắt đầu khi khỉ còn ở giai đoạn early adulthood.",
+          evidence: "The Wisconsin study began with monkeys in early adulthood"
+        }
+      ]
+    },
+    /* Q20–23 Matching Researchers */
+    {
+      passageId: 1,
+      groupId: "P2G2",
+      type: "Matching Information",
+      renderAs: "dropdown",
+      dropdownOptions: ["A. Rozalyn Anderson", "B. Julie Mattison", "C. Leonie Heilbronn"],
+      instruction: "Look at the following statements (Questions 20–23) and the list of researchers below. Match each statement with the correct researcher, A, B or C.\nA. Rozalyn Anderson  B. Julie Mattison  C. Leonie Heilbronn\nNB You may use any letter more than once.",
+      items: [
+        {
+          id: 20,
+          stem: "It is good that the two studies took dissimilar approaches.",
+          key: "A",
+          explanation: "Anderson cho rằng hai nghiên cứu được thiết kế khác nhau sẽ giúp thu được nhiều thông tin nhất.",
+          evidence: "'The fact the two studies were set up differently, asking the same question in different ways — I think we will gain maximally from that.'"
+        },
+        {
+          id: 21,
+          stem: "Neither study used diets that are typical for monkeys.",
+          key: "C",
+          explanation: "Heilbronn nhận xét rằng cả hai nhóm đối chứng đều không đại diện cho chế độ ăn tiêu chuẩn đúng nghĩa.",
+          evidence: "neither group had the right notion of a standard diet according to Leonie Heilbronn"
+        },
+        {
+          id: 22,
+          stem: "Calorie restriction is a method of finding out about health issues connected with ageing.",
+          key: "A",
+          explanation: "Anderson giải thích lý do nghiên cứu hạn chế calo là để tìm hiểu nguyên nhân gây ra bệnh tật liên quan đến tuổi tác.",
+          evidence: "'We study it because it is so effective at delaying ageing and the onset of age-related disease. It's a way to tease out what it is that creates increased disease vulnerability as a function of age.'"
+        },
+        {
+          id: 23,
+          stem: "Calorie reduction will have a positive effect on people who have unhealthy diets.",
+          key: "B",
+          explanation: "Mattison lấy ví dụ người thừa cân ăn fast food hàng ngày sẽ rõ ràng được lợi từ việc cắt giảm 30% calo.",
+          evidence: "an overweight person who goes to a fast food restaurant every day will obviously benefit if their calories are cut back by 30%"
+        }
+      ]
+    },
+    /* Q24–26 Summary Completion */
+    {
+      passageId: 1,
+      groupId: "P2G3",
+      type: "Summary Completion",
+      renderAs: "summary_paragraph",
+      summaryTitle: "Agreement between the two studies on calorie restriction in rhesus monkeys",
+      summaryText: "The two studies were in agreement that it is beneficial to cut calories, in terms of health. Monkeys whose calories were restricted suffered fewer diseases that are associated with the <b>(24)</b> ………… process. Anderson and Mattison have undertaken research to determine if a calorie-restricted diet increases primates' <b>(25)</b> …………… Although there is a <b>(26)</b> …………. between the two sets of data, Anderson believes they will help researchers reach a better understanding.",
+      instruction: "Complete the summary below. Write ONE WORD ONLY from the passage for each answer.",
+      items: [
+        {
+          id: 24,
+          stem: "Monkeys whose calories were restricted suffered fewer diseases that are associated with the <b>(24)</b> ………… process.",
+          key: "ageing",
+          explanation: "Các bệnh liên quan đến quá trình lão hóa (ageing) ít xuất hiện hơn ở khỉ được hạn chế calo.",
+          evidence: "the calorie-restricted monkeys had fewer diseases related to ageing"
+        },
+        {
+          id: 25,
+          stem: "Anderson and Mattison have undertaken research to determine if a calorie-restricted diet increases primates' <b>(25)</b> …………",
+          key: "lifespan",
+          explanation: "Hai nhà nghiên cứu đang cùng nhau so sánh dữ liệu để xác định liệu hạn chế calo có kéo dài tuổi thọ (lifespan) của linh trưởng không.",
+          evidence: "As to the question of whether calorie restriction extends lifespan in primates, Anderson and Mattison are currently working together"
+        },
+        {
+          id: 26,
+          stem: "Although there is a <b>(26)</b> ………… between the two sets of data, Anderson believes they will help researchers reach a better understanding.",
+          key: "conflict",
+          explanation: "Mặc dù có sự xung đột (conflict) giữa hai bộ dữ liệu, Anderson tin rằng chúng sẽ cung cấp thêm hiểu biết sâu sắc.",
+          evidence: "The current data conflict will ultimately provide deeper insights into ageing"
+        }
+      ]
+    },
+
+    /* ══════════════════════════════════════════
+       PASSAGE 3 — Q27–31 Summary Completion (word bank)
+    ══════════════════════════════════════════ */
+    {
+      passageId: 2,
+      groupId: "P3G1",
+      type: "Summary Completion",
+      renderAs: "dropdown",
+      dropdownOptions: ["A. eggs", "B. location", "C. hooded eyes", "D. the wild", "E. body heat", "F. winter sleep", "G. captivity", "H. live young", "I. digestive process", "J. small legs", "K. warmer areas"],
+      summaryTitle: "Characteristics of New Zealand skinks",
+      summaryText: "There are three kinds of reptiles in New Zealand: the tuatara, the gecko and the skink. Skinks are easily distinguished from these other natives by their shiny scales and <b>(27)</b> …… In common with other reptiles, the grand and Otago species of skink have cold blood and therefore <b>(28)</b> …… must be externally controlled. They are unique in that they do not require a long <b>(29)</b> …… Many species are yet to be identified, and identification depends primarily on their <b>(30)</b>  …… and extremely small physical differences. In <b>(31)</b> ……, skinks may potentially live for about 30 years.",
+      instruction: "Complete the summary using the list of words, A-K, below.\nA eggs  B location  C hooded eyes  D the wild  E body heat  F winter sleep  G captivity  H live young  I digestive process  J small legs  K warmer areas",
+      items: [
+        {
+          id: 27,
+          stem: "Skinks are easily distinguished from these other natives by their shiny scales and <b>(27)</b> ……",
+          key: "J",
+          explanation: "Skinks có đặc điểm nhận dạng là vảy sáng bóng và chân ngắn (small legs / short limbs).",
+          evidence: "With their gleaming scales, long bodies and often surprisingly short limbs, skinks are instantly recognisable"
+        },
+        {
+          id: 28,
+          stem: "In common with other reptiles, the grand and Otago species of skink have cold blood and therefore <b>(28)</b> …… must be externally controlled.",
+          key: "E",
+          explanation: "Là loài bò sát máu lạnh, skinks cần điều hòa thân nhiệt (body heat) từ bên ngoài.",
+          evidence: "Skinks, being reptiles, need to regulate their temperature, and lie on sunny rocks to absorb heat"
+        },
+        {
+          id: 29,
+          stem: "They are unique in that they do not require a long <b>(29)</b> ……",
+          key: "F",
+          explanation: "Grand và Otago là loài skink duy nhất không ngủ đông (winter sleep / hibernate) qua mùa đông.",
+          evidence: "the grand and Otago are the only kinds that do not hibernate through winter"
+        },
+        {
+          id: 30,
+          stem: "Many species are yet to be identified, and identification depends primarily on their <b>(30)</b>  …… and extremely small physical differences.",
+          key: "B",
+          explanation: "Việc nhận dạng skinks phụ thuộc vào vị trí (location) tìm thấy mẫu vật và các chi tiết rất nhỏ.",
+          evidence: "Identification depends on where specimens are found, and such minutiae as the number of scales on their toes"
+        },
+        {
+          id: 31,
+          stem: "In <b>(31)</b> ……, skinks may potentially live for about 30 years.",
+          key: "G",
+          explanation: "Trong môi trường nuôi nhốt (captivity / zoos or research centres), skinks có thể sống trên 30 năm.",
+          evidence: "in zoos or research centres they can live beyond thirty"
+        }
+      ]
+    },
+    /* Q32–36 YES/NO/NOT GIVEN */
+    {
+      passageId: 2,
+      groupId: "P3G2",
+      type: "TRUE/FALSE/NOT GIVEN",
+      instruction: "Choose YES if the statement agrees with the claims of the writer, NO if the statement contradicts the claims of the writer, NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      items: [
+        {
+          id: 32,
+          stem: "The DOC project to remove feral cats helped stop the decline in Otago skink numbers.",
+          key: "FALSE",
+          explanation: "Dự án bắt mèo hoang không giúp phục hồi số lượng skinks — số lượng thậm chí còn tiếp tục giảm.",
+          evidence: "Despite the capture of hundreds of cats, skinks showed no signs of recovery; indeed, there were further declines",
+          whyThisVerdict: "Câu hỏi nói dự án 'helped stop the decline' nhưng bài nói 'skinks showed no signs of recovery; there were further declines' — trực tiếp mâu thuẫn.",
+          whyNotNG: "Bài cung cấp thông tin rõ ràng rằng việc bắt mèo không giúp ích gì — không phải thiếu thông tin.",
+          whyNotFalse: "",
+          confusionNote: "Bẫy: 'capture of hundreds of cats' nghe có vẻ hiệu quả nhưng kết quả thực tế là ngược lại."
+        },
+        {
+          id: 33,
+          stem: "Parasite infections are having a serious effect on the physical condition of wild skinks.",
+          key: "FALSE",
+          explanation: "Bài nói không phát hiện ảnh hưởng sức khỏe trực tiếp nào, chỉ là xu hướng đáng lo ngại.",
+          evidence: "Although no direct health implications have been detected the trend is a concern",
+          whyThisVerdict: "Câu hỏi nói 'serious effect on physical condition' nhưng bài khẳng định 'no direct health implications have been detected' — mâu thuẫn trực tiếp.",
+          whyNotNG: "Bài đưa ra thông tin cụ thể phủ nhận ảnh hưởng trực tiếp đến sức khỏe, đây là sự mâu thuẫn rõ ràng.",
+          whyNotFalse: "",
+          confusionNote: "Học sinh có thể bị đánh lừa bởi từ 'concern' và 'rise' trong bài, nhưng key phrase là 'no direct health implications'."
+        },
+        {
+          id: 34,
+          stem: "The best possible habitat for the conservation of skinks is unknown.",
+          key: "YES",
+          explanation: "Tác giả thừa nhận không biết nên tạo lại môi trường sống như thế nào cho skinks.",
+          evidence: "we haven't a clue to the habitat we should be recreating for the skinks, or if where they persist is best for conservation",
+          whyThisVerdict: "Câu hỏi và bài đọc đều nói cùng ý: không ai biết môi trường sống tốt nhất cho skinks là gì — hoàn toàn đồng thuận.",
+          whyNotNG: "",
+          whyNotFalse: "",
+          confusionNote: "Câu này tương đối rõ ràng, chỉ cần tìm đúng đoạn D nói về habitat."
+        },
+        {
+          id: 35,
+          stem: "It is possible that skinks used to have larger numbers of young than they do now.",
+          key: "NOT GIVEN",
+          explanation: "Bài không đề cập đến lịch sử số lượng con non của skinks trong quá khứ.",
+          evidence: "",
+          whyThisVerdict: "Bài chỉ nêu rằng hiện tại skinks chỉ sinh 2 con mỗi năm, không so sánh với quá khứ hay đề cập số lượng con non trước đây.",
+          whyNotFalse: "Không có thông tin nào trong bài để bác bỏ khả năng này — đây là vấn đề thiếu thông tin, không phải mâu thuẫn.",
+          whyNotNG: "",
+          confusionNote: "Học sinh có thể cố gắng suy luận từ thông tin về offspring trong bài, nhưng bài không nói gì về quá khứ."
+        },
+        {
+          id: 36,
+          stem: "The survival of the common species of skink may soon be at risk.",
+          key: "YES",
+          explanation: "Tác giả nêu rõ ngay cả các loài skinks phổ biến cũng có thể đối mặt với tương lai không chắc chắn.",
+          evidence: "even common species may be facing a doubtful future",
+          whyThisVerdict: "Câu hỏi và bài đọc nói cùng ý: ngay cả skinks phổ biến cũng có nguy cơ — YES.",
+          whyNotNG: "",
+          whyNotFalse: "",
+          confusionNote: "Học sinh cần chú ý đọc hết đoạn E, không dừng lại ở câu nói về grand và Otago."
+        }
+      ]
+    },
+    /* Q37–40 Multiple Choice */
+    {
+      passageId: 2,
+      groupId: "P3G3",
+      type: "Multiple Choice",
+      instruction: "Choose the correct answer.",
+      items: [
+        {
+          id: 37,
+          stem: "According to the sixth paragraph, what is being said about the future of the grand and Otago skinks?",
+          options: [
+            "A. More data is necessary in order for DOC to target the right areas.",
+            "B. DOC is uncertain how long a new strategy will take to be effective.",
+            "C. There is a considerable risk that DOC will not succeed in saving them.",
+            "D. The first step in DOC's strategy is to identify their main predator."
+          ],
+          key: "C",
+          explanation: "Đoạn F cho thấy nguy cơ cao DOC sẽ không kịp cứu skinks trong thời gian ít hơn 5 năm còn lại.",
+          evidence: "The prediction that less than six years is all the Otagos and grands have left... No more than five years remain in which to turn things around – a close call"
+        },
+        {
+          id: 38,
+          stem: "According to the writer, a problem with the DOC's fencing project was that",
+          options: [
+            "A. the fence needed to surround various kinds of habitat.",
+            "B. the fence was not the preferred choice of some conservationists.",
+            "C. the fence had to be constructed near a heavily populated urban area.",
+            "D. there was no way of knowing how many skinks were inside the fence."
+          ],
+          key: "A",
+          explanation: "Vấn đề là grand và Otago có sở thích môi trường khác nhau, cả hai đều cần được đáp ứng trong một khu vực hàng rào.",
+          evidence: "grands and Otagos have subtly different environmental preferences, both of which need catering for"
+        },
+        {
+          id: 39,
+          stem: "The writer uses the phrase 'a last resort' in the eighth paragraph in order to",
+          options: [
+            "A. introduce a recent alternative approach to skink conservation.",
+            "B. question whether captive breeding has worked in the past.",
+            "C. imply that skinks are unlikely to reproduce outside their usual habitat.",
+            "D. express a preference for conserving skinks in their natural environment."
+          ],
+          key: "D",
+          explanation: "Cụm từ 'last resort' thể hiện rõ ưu tiên bảo tồn skinks trong môi trường tự nhiên, nuôi nhốt chỉ là phương án cuối cùng.",
+          evidence: "Captive management, however, is a last resort. The priority is to manage and protect skinks in the wild."
+        },
+        {
+          id: 40,
+          stem: "What is the writer doing in the final paragraph?",
+          options: [
+            "A. referring to obstacles in the way of skink conservation",
+            "B. appealing to landowners to donate land for conservation purposes",
+            "C. describing a conservation scheme that is being set up on farmland",
+            "D. showing how commercial profit can be made from ecological ventures"
+          ],
+          key: "C",
+          explanation: "Đoạn cuối mô tả COET đang xây dựng hàng rào bảo vệ trên đất nông nghiệp của một nông dân địa phương.",
+          evidence: "with the generous support of a local farmer with grazing land there, has begun the construction of a mammal-proof fence to protect a 24-hectare area"
+        }
+      ]
+    }
+  ]
+};
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let currentPassage = 0;
+let highlights = [];    // { startContainer, startOffset, endContainer, endOffset, markEl }
+let checkedQuestions = {};   // { qId: true }
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject test name into sidebar
+  const tn = document.getElementById('sidebar-test-name');
+  if (tn) tn.textContent = TEACHER_DATA.meta.testName;
+
+  buildQuestionMap();
+  renderPassage(0);
+  renderQuestions(0);
+  buildAllKeysTable();
+  setupSplitter();
+  setupHighlightTool();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTION MAP (sidebar)
+═══════════════════════════════════════════════════════════════ */
+function buildQuestionMap() {
+  const grid = document.getElementById('q-map');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TEACHER_DATA.meta.totalQuestions; i++) {
+    const chip = document.createElement('div');
+    chip.className = 'q-chip';
+    chip.textContent = i;
+    chip.id = `qchip-${i}`;
+    chip.onclick = () => scrollToQuestion(i);
+    grid.appendChild(chip);
+  }
+}
+
+function scrollToQuestion(id) {
+  const el = document.getElementById(`q-card-${id}`);
+  if (el) {
+    // Switch passage if needed
+    const qData = findQuestionById(id);
+    if (qData && qData.passageId !== currentPassage) {
+      switchPassage(qData.passageId);
+      setTimeout(() => {
+        const el2 = document.getElementById(`q-card-${id}`);
+        if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function findQuestionById(id) {
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === id) return { ...item, passageId: group.passageId };
+    }
+  }
+  return null;
+}
+
+function updateChipState(id, state) {
+  const chip = document.getElementById(`qchip-${id}`);
+  if (!chip) return;
+  chip.classList.remove('answered', 'checked');
+  if (state) chip.classList.add(state);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderPassage(passageIdx) {
+  const p = TEACHER_DATA.passages[passageIdx];
+  const container = document.getElementById('passage-content');
+  document.getElementById('passage-badge').textContent = `Passage ${passageIdx + 1}`;
+
+  let html = `
+    <div class="passage-header">
+      <div class="passage-eyebrow">Reading Passage ${passageIdx + 1} · Questions ${p.qRange[0]}–${p.qRange[1]}</div>
+      <div class="passage-title">${p.title}</div>
+      <div class="passage-source">${p.source}</div>
+      <div class="passage-divider"></div>
+    </div>
+    <div class="passage-body" id="passage-body-${passageIdx}">
+  `;
+
+  for (const para of p.paragraphs) {
+    html += `<p><span class="para-label">${para.label}</span>&nbsp;&nbsp;${para.text}</p>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTIONS RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderQuestions(passageIdx) {
+  const container = document.getElementById('questions-content');
+  const groups = TEACHER_DATA.questions.filter(g => g.passageId === passageIdx);
+
+  if (!groups.length) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">📄</div>
+      <div class="empty-state-title">No questions</div>
+      <div class="empty-state-sub">No questions found for this passage.</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  for (const group of groups) {
+    const firstId = group.items[0].id;
+    const lastId = group.items[group.items.length - 1].id;
+
+    // Build instruction HTML (handle newlines)
+    const instrHtml = (group.instruction || '').replace(/\n/g, '<br>');
+
+    // Build word bank HTML for dropdown groups with dropdownOptions
+    let wordBankHtml = '';
+    if (group.renderAs === 'dropdown' && group.dropdownOptions) {
+      // Detect if it's a researcher list or word bank
+      const isWordBank = group.dropdownOptions.length > 4;
+      if (isWordBank) {
+        const letters = group.dropdownOptions.map(o => {
+          const [letter, ...rest] = o.split('. ');
+          return `<span class="wb-item"><span class="wb-letter">${letter}</span> ${rest.join('. ')}</span>`;
+        }).join('');
+        wordBankHtml = `<div class="word-bank">${letters}</div>`;
+      } else {
+        const researchers = group.dropdownOptions.map(o => `<span class="researcher-tag">${o}</span>`).join('');
+        wordBankHtml = `<div class="researcher-list">${researchers}</div>`;
+      }
+    }
+
+    // Build summary paragraph display
+    let summaryParaHtml = '';
+    if ((group.renderAs === 'summary_paragraph' || group.summaryTitle) && group.summaryText) {
+      summaryParaHtml = `<div class="summary-para-box">
+        <div class="summary-para-title">${group.summaryTitle || ''}</div>
+        <div class="summary-para-text">${group.summaryText}</div>
+      </div>`;
+    }
+
+    // Build cloze_notes display (Q8-13 style — full notes with inline inputs)
+    let clozeNotesHtml = '';
+    if (group.renderAs === 'cloze_notes' && group.notesContent) {
+      // Build a lookup: blank id → item
+      const blankMap = {};
+      for (const it of group.items) blankMap[it.id] = it;
+
+      const linesHtml = group.notesContent.map(row => {
+        const isBullet = row.type.startsWith('bullet');
+        const isHeading = row.type === 'heading';
+        const isAim = row.type === 'aim';
+        const indent = isBullet ? 'cloze-bullet' : '';
+        const cls = isHeading ? 'cloze-heading' : isAim ? 'cloze-aim' : `cloze-line ${indent}`;
+
+        if (row.blank) {
+          const inputEl = `<span class="cloze-blank-wrap">
+            <b>(${row.blank})</b>
+            <input class="cloze-input" id="teacher-input-${row.blank}" type="text"
+              placeholder="…………………"
+              onkeydown="if(event.key==='Enter') checkAnswer(${row.blank})">
+          </span>`;
+          const prefix = row.text ? `${row.text} ` : '';
+          const suffix = row.suffix ? ` ${row.suffix}` : '';
+          return `<div class="${cls}">${prefix}${inputEl}${suffix}</div>`;
+        } else {
+          return `<div class="${cls}">${row.text || ''}</div>`;
+        }
+      }).join('');
+
+      clozeNotesHtml = `<div class="cloze-notes-box">
+        <div class="cloze-notes-title">${group.notesTitle || ''}</div>
+        ${linesHtml}
+      </div>`;
+    }
+
+    // Build flowchart display
+    let flowchartHtml = '';
+    if (group.renderAs === 'flowchart' && group.flowchartBlocks) {
+      const blocksHtml = group.flowchartBlocks.map(b => {
+        if (b.arrow) return `<div class="fc-arrow">↓</div>`;
+        const linesHtml = (b.lines || []).map(l => l === '' ? '<div class="fc-spacer"></div>' : `<div class="fc-line">${l}</div>`).join('');
+        return `<div class="fc-block"><div class="fc-block-label">${b.label}</div>${linesHtml}</div>`;
+      }).join('');
+      flowchartHtml = `<div class="flowchart-box">
+        <div class="flowchart-title">${group.flowchartTitle || ''}</div>
+        ${blocksHtml}
+      </div>`;
+    }
+
+    html += `<div class="q-group">
+      <div class="q-group-header">
+        <span class="q-group-num">Questions ${firstId}–${lastId}</span>
+        <span class="q-type-badge" onclick="openTipsPanel('${group.type}')">
+          <span class="tip-icon">💡</span>${group.type}
+        </span>
+      </div>
+      <div class="q-group-instruction">${instrHtml}</div>
+      ${wordBankHtml}
+      ${summaryParaHtml}
+      ${flowchartHtml}
+      ${clozeNotesHtml}`;
+
+    // For cloze_notes, render correction panels only (no q-card UI, input is inline above)
+    if (group.renderAs === 'cloze_notes') {
+      for (const item of group.items) {
+        const isTFNG = false;
+        html += `<div class="cloze-correction-slot" id="q-card-${item.id}">
+          <div class="cloze-check-row">
+            <span class="cloze-check-num">(${item.id})</span>
+            <button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button>
+          </div>
+          <div class="correction-panel" id="correction-${item.id}">
+            <div class="correct-row key-row">
+              <span class="cr-icon">✅</span>
+              <span class="cr-content"><span class="cr-label">Key:</span> <strong>${item.key}</strong></span>
+            </div>
+            <div class="correct-row explain-row">
+              <span class="cr-icon">💡</span>
+              <span class="cr-content"><span class="cr-label">Giải thích:</span> ${item.explanation}</span>
+            </div>
+            <div class="correct-row evidence-row">
+              <div class="evidence-row-inner">
+                <div class="evidence-top">
+                  <span class="cr-icon">🔍</span>
+                  <span class="cr-content"><span class="cr-label">Evidence:</span> "…${highlightEvidence(item.evidence, item.key)}…"</span>
+                </div>
+                <button class="btn-view-evidence" onclick="viewEvidenceInPassage(this)" data-evidence="${(item.evidence||'').replace(/"/g,'&quot;')}">
+                  📍 Xem trong bài
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
+      html += `</div>`;
+      continue;
+    }
+
+    for (const item of group.items) {
+      const isMCQ = !!item.options;
+      const isDropdown = (group.renderAs === 'dropdown');
+      html += `<div class="q-card" id="q-card-${item.id}">
+        <div class="q-card-top">
+          <div class="q-num-badge">${item.id}</div>
+          <div class="q-content">
+            <div class="q-stem">${item.stem}</div>`;
+
+      const isTFNG = group.type.includes('TRUE') || group.type.includes('FALSE');
+
+      if (isMCQ) {
+        html += `<div class="q-options">`;
+        for (const opt of item.options) {
+          const letter = opt[0];
+          html += `<div class="q-option" onclick="selectOption(${item.id}, '${letter}', this)">
+            <div class="opt-letter">${letter}</div>
+            <span>${opt.substring(3)}</span>
+          </div>`;
+        }
+        html += `</div>`;
+      } else if (isTFNG) {
+        // T/F/NG: dropdown giống đề thật
+        html += `<div class="teacher-input-wrap">
+          <select class="teacher-input" id="teacher-input-${item.id}" style="cursor:pointer;">
+            <option value="">— Chọn đáp án học sinh —</option>
+            <option value="TRUE">TRUE</option>
+            <option value="FALSE">FALSE</option>
+            <option value="NOT GIVEN">NOT GIVEN</option>
+          </select>
+        </div>`;
+      } else if (isDropdown && group.dropdownOptions) {
+        // Matching dropdown (researchers / word bank)
+        const opts = group.dropdownOptions.map(o => `<option value="${o[0]}">${o}</option>`).join('');
+        html += `<div class="teacher-input-wrap">
+          <select class="teacher-input" id="teacher-input-${item.id}" style="cursor:pointer;">
+            <option value="">— Chọn đáp án học sinh —</option>
+            ${opts}
+          </select>
+        </div>`;
+      } else {
+        html += `<div class="teacher-input-wrap">
+          <input class="teacher-input" id="teacher-input-${item.id}" 
+            type="text" placeholder="Nhập đáp án học sinh…"
+            onkeydown="if(event.key==='Enter') checkAnswer(${item.id})">
+        </div>`;
+      }
+
+      if (isTFNG) {
+        // Build T/F/NG distinction panel
+        const rawKey = (item.key || '').toUpperCase().trim();
+        const k = rawKey === 'NOT GIVEN' ? 'NG' : rawKey || 'TRUE';
+        const verdictMap = { TRUE: { icon:'✅', label:'TRUE', cls:'TRUE' }, FALSE: { icon:'❌', label:'FALSE', cls:'FALSE' }, NG: { icon:'❓', label:'NOT GIVEN', cls:'NG' } };
+        const vInfo = verdictMap[k] || { icon:'—', label: item.key || '?', cls:'TRUE' };
+        const hasConfusion = !!(item.confusionNote);
+
+        // Explanation: prefer whyThisVerdict, fallback to explanation
+        const mainExplain = item.whyThisVerdict || item.explanation || '';
+        html += `
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button>
+              ${hasConfusion ? `<span class="confusion-badge">⚠️ Bẫy thường gặp</span>` : ''}
+            </div>
+            <div class="tfng-panel" id="correction-${item.id}">
+              <div class="tfng-verdict-bar verdict-${vInfo.cls}">
+                <span class="tfng-verdict-icon">${vInfo.icon}</span>
+                <span class="tfng-verdict-label">${vInfo.label}</span>
+                <span style="margin-left:auto;font-size:10px;color:var(--ink-muted);font-weight:500;">Đáp án đúng</span>
+              </div>
+              <div class="tfng-statement-box" style="margin:10px 14px 0;">"${item.stem}"</div>
+              <div class="tfng-tabs" id="tfng-tabs-${item.id}">
+                <button class="tfng-tab" onclick="switchTFNGTab(${item.id},'why')" id="tfng-tab-${item.id}-why">📖 Tại sao ${vInfo.label}?</button>
+                ${k === 'FALSE' ? `<button class="tfng-tab" onclick="switchTFNGTab(${item.id},'notng')" id="tfng-tab-${item.id}-notng">❓ Tại sao không NG?</button>` : ''}
+                ${k === 'NG' ? `<button class="tfng-tab" onclick="switchTFNGTab(${item.id},'notfalse')" id="tfng-tab-${item.id}-notfalse">❌ Tại sao không FALSE?</button>` : ''}
+                ${hasConfusion ? `<button class="tfng-tab" onclick="switchTFNGTab(${item.id},'trap')" id="tfng-tab-${item.id}-trap">⚠️ Bẫy</button>` : ''}
+              </div>
+
+              <!-- TAB: Tại sao verdict này -->
+              <div class="tfng-tab-content" id="tfng-pane-${item.id}-why">
+                ${mainExplain ? `<div class="tfng-block reason-${vInfo.cls.toLowerCase()}">
+                  <div class="tfng-block-label">Lý do</div>
+                  <div class="tfng-block-text">${mainExplain}</div>
+                </div>` : ''}
+                ${item.evidence ? `<div class="tfng-block evidence">
+                  <div class="tfng-block-label">🔍 Evidence trong bài</div>
+                  <div class="tfng-block-text">"…${highlightEvidence(item.evidence, item.key)}…"</div>
+                  <button class="tfng-view-evidence-btn" onclick="viewEvidenceInPassage(this)" data-evidence="${item.evidence.replace(/"/g,'&quot;')}">
+                    📍 Xem vị trí trong bài
+                  </button>
+                </div>` : '<div class="tfng-block evidence" style="color:var(--ink-muted);font-size:11px;">Chưa có evidence. (Trường hợp NOT GIVEN có thể không có evidence trực tiếp.)</div>'}
+              </div>
+
+              ${k === 'FALSE' && item.whyNotNG ? `
+              <!-- TAB: Tại sao không NG -->
+              <div class="tfng-tab-content" id="tfng-pane-${item.id}-notng">
+                <div class="tfng-block confusion-note">
+                  <div class="tfng-block-label">⚠️ Học sinh hay nhầm: chọn NOT GIVEN</div>
+                  <div class="tfng-block-text">${item.whyNotNG}</div>
+                </div>
+                <div class="tfng-block reason-false" style="margin-top:0;">
+                  <div class="tfng-block-label">Tại sao đây là FALSE, không phải NOT GIVEN?</div>
+                  <div class="tfng-block-text">FALSE = bài đọc <strong>nói điều ngược lại</strong> với câu phát biểu.<br>NOT GIVEN = bài đọc <strong>không đề cập</strong> vấn đề này.<br><br>Trong câu này: bài đọc <strong>đề cập đến chủ đề</strong> nhưng thông tin <strong>mâu thuẫn</strong> với câu phát biểu.</div>
+                </div>
+              </div>` : ''}
+
+              ${k === 'NG' && item.whyNotFalse ? `
+              <!-- TAB: Tại sao không FALSE -->
+              <div class="tfng-tab-content" id="tfng-pane-${item.id}-notfalse">
+                <div class="tfng-block confusion-note">
+                  <div class="tfng-block-label">⚠️ Học sinh hay nhầm: chọn FALSE</div>
+                  <div class="tfng-block-text">${item.whyNotFalse}</div>
+                </div>
+                <div class="tfng-block reason-ng" style="margin-top:0;">
+                  <div class="tfng-block-label">Tại sao đây là NOT GIVEN, không phải FALSE?</div>
+                  <div class="tfng-block-text">NOT GIVEN = bài đọc <strong>hoàn toàn không đề cập</strong> nội dung câu phát biểu.<br>FALSE = bài đọc <strong>nói ngược lại</strong>.<br><br>Trong câu này: bài đọc <strong>không có thông tin</strong> để xác nhận hay bác bỏ câu phát biểu.</div>
+                </div>
+              </div>` : ''}
+
+              ${hasConfusion ? `
+              <!-- TAB: Bẫy -->
+              <div class="tfng-tab-content" id="tfng-pane-${item.id}-trap">
+                <div class="tfng-block confusion-note">
+                  <div class="tfng-block-label">⚠️ Bẫy phổ biến</div>
+                  <div class="tfng-block-text">${item.confusionNote}</div>
+                </div>
+              </div>` : ''}
+            </div>`;
+      } else {
+        // Standard correction panel (non-TFNG)
+        html += `
+            <div style="display:flex;gap:6px;">
+              <button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button>
+            </div>
+            <div class="correction-panel" id="correction-${item.id}">
+              <div class="correct-row key-row">
+                <span class="cr-icon">✅</span>
+                <span class="cr-content"><span class="cr-label">Key:</span> <strong>${item.key}</strong></span>
+              </div>
+              <div class="correct-row explain-row">
+                <span class="cr-icon">💡</span>
+                <span class="cr-content"><span class="cr-label">Giải thích:</span> ${item.explanation}</span>
+              </div>
+              <div class="correct-row evidence-row">
+                <div class="evidence-row-inner">
+                  <div class="evidence-top">
+                    <span class="cr-icon">🔍</span>
+                    <span class="cr-content"><span class="cr-label">Evidence:</span> "…${highlightEvidence(item.evidence, item.key)}…"</span>
+                  </div>
+                  <button class="btn-view-evidence" onclick="viewEvidenceInPassage(this)" data-evidence="${item.evidence.replace(/"/g,'&quot;')}">
+                    📍 Xem trong bài
+                  </button>
+                </div>
+              </div>
+            </div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+
+  // Restore checked states
+  for (const [id, state] of Object.entries(checkedQuestions)) {
+    if (state) {
+      const panel = document.getElementById(`correction-${id}`);
+      if (panel) {
+        panel.classList.add('open');
+        // If TFNG panel, activate first tab
+        if (panel.classList.contains('tfng-panel')) {
+          activateFirstTFNGTab(parseInt(id));
+        }
+      }
+    }
+  }
+}
+
+function highlightEvidence(evidence, key) {
+  if (!evidence) return '';
+  const keywords = key.split(/[\s,\/]+/).filter(w => w.length > 2);
+  let result = evidence;
+  for (const kw of keywords) {
+    const re = new RegExp(`(${kw})`, 'gi');
+    result = result.replace(re, `<span class="evidence-keyword">$1</span>`);
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   T/F/NG TAB SWITCHER
+═══════════════════════════════════════════════════════════════ */
+function switchTFNGTab(qId, tabName) {
+  // Hide all panes for this question
+  document.querySelectorAll(`[id^="tfng-pane-${qId}-"]`).forEach(p => p.classList.remove('active'));
+
+  // Deactivate all tabs
+  document.querySelectorAll(`[id^="tfng-tab-${qId}-"]`).forEach(t => {
+    t.className = 'tfng-tab'; // reset
+  });
+
+  // Show target pane
+  const pane = document.getElementById(`tfng-pane-${qId}-${tabName}`);
+  if (pane) pane.classList.add('active');
+
+  // Activate tab with color matching verdict
+  const activeTab = document.getElementById(`tfng-tab-${qId}-${tabName}`);
+  if (activeTab) {
+    // Find verdict class from the verdict bar
+    const panel = document.getElementById(`correction-${qId}`);
+    const bar = panel ? panel.querySelector('.tfng-verdict-bar') : null;
+    let verdictCls = 'TRUE';
+    if (bar) {
+      if (bar.classList.contains('verdict-FALSE')) verdictCls = 'FALSE';
+      else if (bar.classList.contains('verdict-NG')) verdictCls = 'NG';
+    }
+    activeTab.classList.add(`active-${verdictCls}`);
+  }
+}
+
+function activateFirstTFNGTab(qId) {
+  // Find first available tab and activate it
+  const tabs = document.querySelectorAll(`[id^="tfng-tab-${qId}-"]`);
+  if (tabs.length > 0) {
+    const firstTabName = tabs[0].id.replace(`tfng-tab-${qId}-`, '');
+    switchTFNGTab(qId, firstTabName);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW EVIDENCE IN PASSAGE
+   Finds the evidence phrase inside the passage pane, scrolls to it,
+   wraps it in a temporary flash span, then removes it after 3s.
+═══════════════════════════════════════════════════════════════ */
+let _activeEvidenceBtn = null;
+let _activeFlashSpans = [];
+
+function viewEvidenceInPassage(btn) {
+  const evidenceText = btn.dataset.evidence;
+  if (!evidenceText) return;
+
+  // Toggle off if same button clicked again
+  if (_activeEvidenceBtn === btn) {
+    clearEvidenceFlash();
+    return;
+  }
+
+  // Clear any previous flash
+  clearEvidenceFlash();
+
+  _activeEvidenceBtn = btn;
+  btn.classList.add('active');
+  btn.textContent = '✕ Đang xem…';
+
+  const passagePane = document.getElementById('passage-pane');
+
+  // Build a clean search string (collapse whitespace)
+  const searchStr = evidenceText.replace(/\s+/g, ' ').trim();
+
+  // Use TreeWalker to find the text node(s) containing the phrase
+  const result = findTextInPane(passagePane, searchStr);
+
+  if (!result) {
+    btn.textContent = '⚠ Không tìm thấy';
+    btn.classList.remove('active');
+    setTimeout(() => { btn.textContent = '📍 Xem trong bài'; }, 2000);
+    _activeEvidenceBtn = null;
+    return;
+  }
+
+  // Wrap the matched range in flash spans (may span nodes)
+  const flashSpans = wrapRangeWithFlash(result);
+  _activeFlashSpans = flashSpans;
+
+  // Scroll the first span into view in the passage pane
+  if (flashSpans.length > 0) {
+    flashSpans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Auto-clear after 3.5s
+  setTimeout(() => {
+    if (_activeEvidenceBtn === btn) clearEvidenceFlash();
+  }, 3500);
+}
+
+function clearEvidenceFlash() {
+  _activeFlashSpans.forEach(span => {
+    const parent = span.parentNode;
+    if (!parent) return;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+    try { parent.normalize(); } catch(e) {}
+  });
+  _activeFlashSpans = [];
+
+  if (_activeEvidenceBtn) {
+    _activeEvidenceBtn.classList.remove('active');
+    _activeEvidenceBtn.textContent = '📍 Xem trong bài';
+    _activeEvidenceBtn = null;
+  }
+}
+
+/**
+ * Find `searchStr` across text nodes inside `container`.
+ * Returns a Range covering the match, or null.
+ */
+function findTextInPane(container, searchStr) {
+  // Concatenate all text node content with bookmarks to map back positions
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+
+  // Build a single string from all text, track node boundaries
+  let fullText = '';
+  const nodeMap = []; // { node, start, end }
+  for (const n of nodes) {
+    const start = fullText.length;
+    fullText += n.textContent;
+    nodeMap.push({ node: n, start, end: fullText.length });
+  }
+
+  // Normalise whitespace in fullText for matching (but keep original nodes)
+  // We search on a whitespace-collapsed shadow, mapping indices back
+  const shadowText = fullText.replace(/\s+/g, ' ');
+  const searchNorm = searchStr.replace(/\s+/g, ' ');
+
+  // Build index map: shadowText[i] → fullText index
+  const shadowToFull = [];
+  let fi = 0;
+  let prevWasSpace = false;
+  for (let si = 0; si < fullText.length; si++) {
+    const ch = fullText[si];
+    const isSpace = /\s/.test(ch);
+    if (isSpace) {
+      if (!prevWasSpace) {
+        shadowToFull.push(si);
+        prevWasSpace = true;
+      }
+      // collapsed — don't push
+    } else {
+      shadowToFull.push(si);
+      prevWasSpace = false;
+    }
+  }
+
+  const matchIdx = shadowText.indexOf(searchNorm);
+  if (matchIdx < 0) return null;
+
+  const fullStart = shadowToFull[matchIdx] ?? matchIdx;
+  const fullEnd   = (shadowToFull[matchIdx + searchNorm.length - 1] ?? (matchIdx + searchNorm.length - 1)) + 1;
+
+  // Map fullText positions back to DOM nodes
+  function nodeAtPos(pos) {
+    for (const nm of nodeMap) {
+      if (pos >= nm.start && pos < nm.end) {
+        return { node: nm.node, offset: pos - nm.start };
+      }
+    }
+    // edge case: end of last node
+    const last = nodeMap[nodeMap.length - 1];
+    return { node: last.node, offset: last.node.textContent.length };
+  }
+
+  const startInfo = nodeAtPos(fullStart);
+  const endInfo   = nodeAtPos(fullEnd);
+
+  const range = document.createRange();
+  range.setStart(startInfo.node, startInfo.offset);
+  range.setEnd(endInfo.node, endInfo.offset);
+  return range;
+}
+
+/**
+ * Wrap a Range (possibly multi-node) with <span class="evidence-flash"> elements.
+ * Returns array of spans created.
+ */
+function wrapRangeWithFlash(range) {
+  const passagePane = document.getElementById('passage-pane');
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  const spans = [];
+  nodes.forEach(textNode => {
+    let start = 0;
+    let end = textNode.length;
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer)   end   = range.endOffset;
+    if (start >= end) return;
+
+    const before = textNode.splitText(start);
+    before.splitText(end - start);
+
+    const span = document.createElement('span');
+    span.className = 'evidence-flash';
+    before.parentNode.insertBefore(span, before);
+    span.appendChild(before);
+    spans.push(span);
+  });
+
+  return spans;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE SWITCHING
+═══════════════════════════════════════════════════════════════ */
+function switchPassage(idx) {
+  currentPassage = idx;
+
+  // Update tabs
+  document.querySelectorAll('.passage-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+
+  renderPassage(idx);
+  renderQuestions(idx);
+
+  // Scroll both panes to top
+  document.getElementById('passage-pane').scrollTop = 0;
+  document.getElementById('questions-pane').scrollTop = 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MCQ SELECTION
+═══════════════════════════════════════════════════════════════ */
+function selectOption(qId, letter, el) {
+  const card = document.getElementById(`q-card-${qId}`);
+  card.querySelectorAll('.q-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.dataset.selected = letter;
+  updateChipState(qId, 'answered');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECK ANSWER
+═══════════════════════════════════════════════════════════════ */
+function checkAnswer(qId) {
+  const panel = document.getElementById(`correction-${qId}`);
+  if (!panel) return;
+
+  const isTFNG = panel.classList.contains('tfng-panel');
+
+  panel.classList.add('open');
+  checkedQuestions[qId] = true;
+  updateChipState(qId, 'checked');
+
+  // If TFNG, activate first tab
+  if (isTFNG) {
+    activateFirstTFNGTab(qId);
+  }
+
+  // Determine correctness for report
+  const qData = findQuestionById(qId);
+  if (qData) {
+    let studentAnswer = '';
+    let isCorrect = false;
+
+    if (qData.options) {
+      // MCQ — find selected option
+      const card = document.getElementById(`q-card-${qId}`);
+      const selected = card ? card.querySelector('.q-option.selected') : null;
+      studentAnswer = selected ? selected.dataset.selected : '';
+      isCorrect = studentAnswer.toUpperCase() === qData.key.toUpperCase();
+    } else {
+      // Text input or select (TFNG dropdown)
+      const input = document.getElementById(`teacher-input-${qId}`);
+      studentAnswer = input ? input.value.trim() : '';
+      // Flexible match: lowercase, trim
+      const norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+      isCorrect = norm(studentAnswer) === norm(qData.key) ||
+        (qData.key.includes('/') && qData.key.split('/').some(k => norm(k) === norm(studentAnswer)));
+    }
+
+    registerStudentAnswer(qId, studentAnswer, isCorrect);
+  }
+
+  setTimeout(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALL KEYS TABLE
+═══════════════════════════════════════════════════════════════ */
+function buildAllKeysTable() {
+  const table = document.getElementById('key-table-body');
+  let html = '';
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      html += `<tr>
+        <td class="kt-num">${item.id}</td>
+        <td class="kt-key">${item.key}</td>
+        <td class="kt-type">${group.type.split(' ').slice(0,2).join(' ')}</td>
+      </tr>`;
+    }
+  }
+  table.innerHTML = html;
+}
+
+function toggleAllKeys(show) {
+  document.getElementById('all-keys-panel').classList.toggle('open', show);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HIGHLIGHT TOOL — robust multi-node, cursor-anchored, click-to-remove
+═══════════════════════════════════════════════════════════════ */
+let _hlMouseX = 0;
+let _hlMouseY = 0;
+let _pendingRange = null;
+
+function setupHighlightTool() {
+  const toolbar = document.getElementById('hl-toolbar');
+  const passagePane = document.getElementById('passage-pane');
+
+  // Track mouse position at all times for accurate toolbar placement
+  document.addEventListener('mousemove', (e) => {
+    _hlMouseX = e.clientX;
+    _hlMouseY = e.clientY;
+  });
+
+  // Click on an existing highlight → remove it
+  passagePane.addEventListener('click', (e) => {
+    const mark = e.target.closest('mark.hl-yellow');
+    if (mark) {
+      removeHighlight(mark);
+      e.stopPropagation();
+      return;
+    }
+  });
+
+  // After mouseup: check if there's a real selection inside the passage
+  document.addEventListener('mouseup', (e) => {
+    // Ignore clicks inside the toolbar itself
+    if (toolbar.contains(e.target)) return;
+
+    // Small delay so selection is settled
+    setTimeout(() => {
+      const sel = window.getSelection();
+
+      if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        hideToolbar();
+        return;
+      }
+
+      // Verify selection is inside the passage pane
+      const range = sel.getRangeAt(0);
+      if (!passagePane.contains(range.commonAncestorContainer)) {
+        hideToolbar();
+        return;
+      }
+
+      // Store the range for later use when button is clicked
+      _pendingRange = range.cloneRange();
+
+      // Position toolbar above where the mouse is
+      showToolbarAt(_hlMouseX, _hlMouseY - 52);
+    }, 10);
+  });
+
+  // Hide toolbar on mousedown outside
+  document.addEventListener('mousedown', (e) => {
+    if (!toolbar.contains(e.target)) {
+      hideToolbar();
+    }
+  });
+
+  // Hide on scroll (re-anchoring is complex; just hide)
+  document.getElementById('passage-pane').addEventListener('scroll', () => {
+    hideToolbar();
+  });
+}
+
+function showToolbarAt(x, y) {
+  const toolbar = document.getElementById('hl-toolbar');
+  // Clamp so toolbar doesn't go off-screen
+  const tw = 130; // approx toolbar width
+  const clampedX = Math.min(Math.max(x, tw / 2 + 8), window.innerWidth - tw / 2 - 8);
+  const clampedY = Math.max(y, 8);
+  toolbar.style.left = `${clampedX}px`;
+  toolbar.style.top = `${clampedY}px`;
+  toolbar.classList.add('visible');
+}
+
+function hideToolbar() {
+  document.getElementById('hl-toolbar').classList.remove('visible');
+}
+
+function applyHighlight() {
+  const sel = window.getSelection();
+  const range = (_pendingRange && !_pendingRange.collapsed)
+    ? _pendingRange
+    : (sel && !sel.isCollapsed ? sel.getRangeAt(0) : null);
+
+  if (!range) { hideToolbar(); return; }
+
+  // Use TreeWalker to split across text nodes safely — no broken DOM
+  highlightRange(range);
+
+  // Clear selection
+  if (sel) sel.removeAllRanges();
+  _pendingRange = null;
+  hideToolbar();
+}
+
+/**
+ * Highlight a Range that may span multiple text nodes / block elements.
+ * Strategy: collect all text nodes within the range, wrap each one
+ * individually in a <mark>. This avoids the surroundContents() constraint
+ * that the range must not partially select an element, and keeps
+ * inline flow intact so text never breaks unexpectedly.
+ */
+function highlightRange(range) {
+  const passagePane = document.getElementById('passage-pane');
+
+  // Collect all text nodes touched by the range
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    // Only include nodes inside the passage pane
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  nodes.forEach((textNode) => {
+    // Determine which portion of this text node is selected
+    let start = 0;
+    let end = textNode.length;
+
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer) end = range.endOffset;
+
+    if (start >= end) return; // nothing to highlight here
+
+    // Split and wrap only the selected slice
+    // splitText returns the tail; we need to be careful about order
+    const before = textNode.splitText(start);       // before = [start..end]
+    const after  = before.splitText(end - start);   // after = [end..]  (unused but needed)
+
+    const mark = document.createElement('mark');
+    mark.className = 'hl-yellow';
+    before.parentNode.insertBefore(mark, before);
+    mark.appendChild(before);
+    highlights.push(mark);
+  });
+
+  // Normalize to clean up any adjacent text nodes we created
+  // but only where it's safe (not inside inputs)
+  try {
+    const ancestor = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    ancestor.normalize && ancestor.normalize();
+  } catch(e) { /* ignore */ }
+}
+
+function removeHighlight(mark) {
+  // Unwrap the mark: move all children before the mark, then remove mark
+  const parent = mark.parentNode;
+  if (!parent) return;
+  while (mark.firstChild) {
+    parent.insertBefore(mark.firstChild, mark);
+  }
+  parent.removeChild(mark);
+  parent.normalize();
+  // Remove from highlights array
+  const idx = highlights.indexOf(mark);
+  if (idx > -1) highlights.splice(idx, 1);
+}
+
+function clearAllHighlights() {
+  // Work on a copy since removeHighlight mutates the array
+  [...highlights].forEach(mark => removeHighlight(mark));
+  highlights = [];
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESIZABLE SPLITTER
+═══════════════════════════════════════════════════════════════ */
+function setupSplitter() {
+  const splitter = document.getElementById('splitter');
+  const passagePane = document.getElementById('passage-pane');
+  const splitContainer = document.getElementById('split-container');
+
+  let isDragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  splitter.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startWidth = passagePane.offsetWidth;
+    splitter.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const containerW = splitContainer.offsetWidth;
+    const newW = Math.min(Math.max(startWidth + dx, 280), containerW - 280);
+    passagePane.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    splitter.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS DATA — Hướng dẫn chi tiết cho từng dạng bài IELTS Reading
+═══════════════════════════════════════════════════════════════ */
+const TIPS_DATA = {
+  "TRUE/FALSE/NOT GIVEN": {
+    overview: "Dạng bài yêu cầu học sinh xác định thông tin trong bài có khớp với câu phát biểu không. Đây là dạng nhiều học sinh nhầm lẫn nhất vì ranh giới giữa FALSE và NOT GIVEN rất mỏng.",
+    steps: [
+      { title: "Đọc câu hỏi trước", text: "Đọc kỹ câu phát biểu, <strong>gạch chân keyword</strong> (danh từ, tính từ, số liệu). Đây là từ cần tìm trong bài." },
+      { title: "Locate — không đọc toàn bài", text: "Dùng keyword để <strong>xác định đoạn văn</strong> có chứa thông tin liên quan. Chỉ đọc kỹ đoạn đó." },
+      { title: "So sánh từng chi tiết", text: "<strong>TRUE</strong>: bài đọc xác nhận rõ ràng. <strong>FALSE</strong>: bài đọc nói điều ngược lại. <strong>NOT GIVEN</strong>: bài không đề cập, hoặc không đủ thông tin để xác nhận/phủ nhận." },
+      { title: "Không suy luận", text: "Với NOT GIVEN, học sinh hay tự suy luận từ kiến thức bên ngoài. <strong>Chỉ dùng thông tin trong bài</strong>, không dùng kiến thức thực tế." }
+    ],
+    traps: [
+      "Nhầm FALSE với NOT GIVEN: bài đọc im lặng về chủ đề ≠ bài đọc phủ nhận.",
+      "Dừng lại ở từ quen thuộc — paraphrase thường thay đổi từ nhưng giữ nguyên nghĩa.",
+      "Qualifier bẫy: 'all', 'always', 'never', 'only' — một qualifier sai là cả câu FALSE."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện phân biệt FALSE vs NOT GIVEN bằng cách hỏi: 'Bài có nói điều GÌ mâu thuẫn không?' Nếu có → FALSE. Nếu chỉ không đề cập → NOT GIVEN.",
+      "Band 7→8: Chú ý scope — câu hỏi nói 'tất cả' nhưng bài chỉ nói 'một số' = FALSE ngay.",
+      "Band 8+: Đọc qualifier và hedging language ('may', 'might', 'some') — đây thường là bẫy NOT GIVEN."
+    ]
+  },
+  "Multiple Choice": {
+    overview: "Dạng bài yêu cầu chọn 1 trong 4 đáp án (A/B/C/D). Các câu hỏi thường theo thứ tự xuất hiện trong bài, giúp locate dễ hơn.",
+    steps: [
+      { title: "Đọc câu hỏi — bỏ qua options", text: "Đọc phần stem (câu hỏi) trước, <strong>không đọc A/B/C/D</strong>. Gạch chân keyword để locate trong bài." },
+      { title: "Locate và đọc kỹ đoạn đó", text: "Tìm đoạn văn chứa thông tin, đọc toàn bộ đoạn đó. <strong>Đừng chọn đáp án chỉ vì thấy từ quen</strong>." },
+      { title: "Loại trừ", text: "So sánh từng option với bài. <strong>Loại những cái sai rõ ràng trước</strong>, rồi chọn cái còn lại khớp nhất." },
+      { title: "Kiểm tra lại", text: "Đáp án đúng thường là paraphrase của bài, không phải copy nguyên văn. Nếu một option dùng từ y chang bài → <strong>thường là bẫy</strong>." }
+    ],
+    traps: [
+      "Distractor dùng từ trong bài nhưng sai nghĩa (true words, wrong meaning).",
+      "Option nghe 'hợp lý' theo kiến thức thực tế nhưng bài không nói.",
+      "Chọn theo cảm tính vì câu đó 'đúng về mặt chung' — phải bám vào bài."
+    ],
+    bandTips: [
+      "Band 6→7: Luôn quay lại bài đọc để verify, đừng chọn từ trí nhớ.",
+      "Band 7→8: Chú ý hedging trong options — 'may contribute' vs 'is the main cause' là hai đáp án rất khác nhau.",
+      "Band 8+: Đọc tất cả 4 options trước khi chọn, kể cả khi đã thấy đáp án đúng. Đề IELTS hay có 'better answer'."
+    ]
+  },
+  "Short Answer Questions": {
+    overview: "Dạng bài yêu cầu trả lời câu hỏi bằng từ trích thẳng từ bài đọc, thường giới hạn 2-3 từ. Học sinh PHẢI dùng từ trong bài, không được paraphrase.",
+    steps: [
+      { title: "Đọc giới hạn từ cẩn thận", text: "<strong>NO MORE THAN TWO/THREE WORDS</strong> — đếm từ kỹ. 'a' và 'the' cũng tính là 1 từ." },
+      { title: "Xác định loại thông tin cần tìm", text: "Câu hỏi bắt đầu bằng gì? <strong>What = danh từ/khái niệm. How many = số. When = thời gian. Where = địa điểm</strong>." },
+      { title: "Scan bài theo từ khoá câu hỏi", text: "Locate vùng bài có chứa thông tin. Đọc kỹ 1-2 câu xung quanh keyword." },
+      { title: "Chép đúng từ bài", text: "<strong>Copy chính xác từ bài</strong>, kể cả viết hoa. Không được đổi dạng từ (sang/không sang số nhiều, v.v.)." }
+    ],
+    traps: [
+      "Vượt giới hạn từ — 'recirculated irrigation systems' là 3 từ, đúng giới hạn. Thêm 'the' vào trước = 4 từ, sai.",
+      "Paraphrase thay vì copy — dạng này BẮT BUỘC dùng từ trong bài.",
+      "Lấy sai phần: câu hỏi hỏi về tác động nhưng học sinh chép nguyên nhân."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện scan — nhìn vào câu hỏi, khoanh keyword, chỉ đọc đoạn chứa keyword đó.",
+      "Band 7→8: Để ý số ít/số nhiều, verb tense trong câu hỏi để đoán loại đáp án.",
+      "Band 8+: Khi answer không rõ, đọc rộng hơn 1 đoạn trước/sau vùng locate ban đầu."
+    ]
+  },
+  "Matching Headings": {
+    overview: "Dạng bài yêu cầu ghép tiêu đề phù hợp với từng đoạn văn. Cần nắm ý chính của cả đoạn, không chỉ một câu.",
+    steps: [
+      { title: "Đọc tất cả headings trước", text: "Đọc và hiểu hết list headings. <strong>Đánh dấu keyword</strong> trong từng heading." },
+      { title: "Đọc topic sentence của mỗi đoạn", text: "Câu đầu thường là topic sentence. Đọc câu đầu + câu cuối của đoạn để nắm ý chính." },
+      { title: "Ghép ý chính — không chi tiết", text: "Heading phản ánh <strong>ý chính của cả đoạn</strong>, không phải một chi tiết nhỏ. Loại heading chỉ đề cập một phần." },
+      { title: "Dùng phương pháp loại trừ", text: "Bắt đầu từ đoạn văn dễ xác định nhất. Loại heading đã dùng khỏi danh sách." }
+    ],
+    traps: [
+      "Chọn heading chứa từ xuất hiện trong đoạn nhưng không phải ý chính.",
+      "Nhầm chi tiết ví dụ với luận điểm chính — ví dụ minh họa không nên là heading.",
+      "Headings số lẻ: có nhiều headings hơn đoạn văn — không nhất thiết dùng hết."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi chọn heading, kiểm tra lại: 'Heading này có bao quát cả đoạn không, hay chỉ 1-2 câu?'",
+      "Band 7→8: Phân biệt paragraph về 'vấn đề' vs 'giải pháp' vs 'phê bình' — heading thường dùng từ chỉ chức năng này.",
+      "Band 8+: Để ý shift trong đoạn — đoạn có thể bắt đầu bằng ý A nhưng kết thúc bằng ý B; heading phản ánh ý B (kết luận của đoạn)."
+    ]
+  },
+  "Matching Information": {
+    overview: "Dạng bài yêu cầu xác định đoạn văn (A, B, C...) chứa thông tin được mô tả. Khác Matching Headings, đây tìm thông tin cụ thể chứ không phải ý chính.",
+    steps: [
+      { title: "Đọc câu hỏi — xác định loại thông tin", text: "Mỗi câu mô tả một <strong>loại thông tin cụ thể</strong>: số liệu, ví dụ, nguyên nhân, kết quả, trích dẫn, v.v." },
+      { title: "Scan toàn bài — không đọc tuần tự", text: "<strong>Scan nhanh</strong> từng đoạn để tìm đoạn có chứa loại thông tin đó. Dùng keyword từ câu hỏi." },
+      { title: "Verify bằng cách đọc kỹ đoạn đó", text: "Khi đã locate đoạn, đọc kỹ để xác nhận thông tin khớp với câu hỏi." },
+      { title: "Chú ý: đoạn có thể dùng lại", text: "Một đoạn văn có thể là đáp án của nhiều câu hỏi khác nhau." }
+    ],
+    traps: [
+      "Locate nhầm đoạn vì keyword giống nhau nhưng thông tin khác.",
+      "Bỏ qua đoạn đầu/cuối — học sinh hay chỉ scan phần giữa.",
+      "Đọc quá chậm từng đoạn — dạng này cần scan nhanh rồi mới đọc kỹ."
+    ],
+    bandTips: [
+      "Band 6→7: Đánh số từng đoạn trước, ghi tóm tắt 3-4 từ bên cạnh mỗi đoạn khi đọc lần đầu.",
+      "Band 7→8: Nhận biết 'loại thông tin' trong câu hỏi — 'a reason why', 'an example of', 'a comparison between' để scan mục tiêu hơn.",
+      "Band 8+: Làm câu khó nhất trước — câu nào mô tả thông tin rất cụ thể (số liệu, tên riêng) thì locate nhanh nhất."
+    ]
+  },
+  "Summary Completion": {
+    overview: "Dạng bài cho một đoạn tóm tắt có chỗ trống, học sinh điền từ lấy từ bài đọc hoặc từ danh sách cho sẵn. Thường xuất hiện theo thứ tự bài đọc.",
+    steps: [
+      { title: "Đọc toàn bộ summary trước", text: "Đọc để hiểu chủ đề và <strong>đoán loại từ cần điền</strong> (danh từ, tính từ, động từ, số)." },
+      { title: "Locate trong bài", text: "Summary thường theo thứ tự bài đọc. Xác định đoạn bài tương ứng với phần summary đang xét." },
+      { title: "Điền từ bài — đúng dạng từ", text: "Nếu đề yêu cầu 'words from the passage' — <strong>copy nguyên văn</strong>. Kiểm tra số ít/nhiều, thì động từ." },
+      { title: "Đọc lại summary sau khi điền", text: "Đọc lại toàn bộ summary để kiểm tra <strong>ngữ nghĩa và ngữ pháp</strong> tổng thể có thông không." }
+    ],
+    traps: [
+      "Điền từ nghe 'đúng về nghĩa' nhưng không có trong bài.",
+      "Vượt giới hạn số từ — luôn đếm lại.",
+      "Điền paraphrase thay vì từ gốc — dạng 'words from the passage' không chấp nhận điều này."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi locate đoạn, đọc 2-3 câu trước và sau keyword để hiểu ngữ cảnh đầy đủ.",
+      "Band 7→8: Dùng gợi ý ngữ pháp — chỗ trống sau 'the' cần danh từ; sau 'is' cần tính từ/danh từ.",
+      "Band 8+: Xem summary như một mini-test về paraphrase — hiểu cách bài tóm tắt ý của passage để đoán đúng từ cần điền."
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS PANEL
+═══════════════════════════════════════════════════════════════ */
+function openTipsPanel(qType) {
+  const panel = document.getElementById('tips-panel');
+  const title = document.getElementById('tips-panel-title');
+  const body  = document.getElementById('tips-panel-body');
+
+  // Find matching tips — try exact match, then partial
+  let data = TIPS_DATA[qType];
+  if (!data) {
+    const key = Object.keys(TIPS_DATA).find(k => qType.toLowerCase().includes(k.toLowerCase().split(' ')[0]));
+    data = key ? TIPS_DATA[key] : null;
+  }
+
+  if (!data) {
+    body.innerHTML = `<div style="color:var(--ink-muted);padding:20px;font-size:13px;">Chưa có tips cho dạng bài này.</div>`;
+  } else {
+    title.textContent = qType;
+
+    const stepsHtml = data.steps.map((s, i) => `
+      <div class="tips-item">
+        <div class="tips-item-num">${i + 1}</div>
+        <div class="tips-item-text"><strong>${s.title}:</strong> ${s.text}</div>
+      </div>`).join('');
+
+    const trapsHtml = data.traps.map(t => `
+      <div class="tips-trap">
+        <span class="tips-trap-icon">⚠️</span>
+        <span>${t}</span>
+      </div>`).join('');
+
+    const bandHtml = data.bandTips.map(b => `
+      <div class="tips-band">
+        <span class="tips-band-icon">🚀</span>
+        <span>${b}</span>
+      </div>`).join('');
+
+    body.innerHTML = `
+      <div class="tips-overview">${data.overview}</div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">📋 Quy trình làm bài</div>
+        ${stepsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">⚠️ Bẫy thường gặp</div>
+        ${trapsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">🚀 Tips tăng Band</div>
+        ${bandHtml}
+      </div>`;
+  }
+
+  panel.classList.add('open');
+}
+
+function closeTipsPanel() {
+  document.getElementById('tips-panel').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR NAV SWITCH (Câu hỏi ↔ Báo cáo)
+═══════════════════════════════════════════════════════════════ */
+function switchSidebarView(view) {
+  const isQ = view === 'questions';
+  const qView = document.getElementById('sidebar-view-questions');
+  const rView = document.getElementById('sidebar-view-report');
+  qView.classList.toggle('hidden', !isQ);
+  rView.classList.toggle('visible', !isQ);
+  document.getElementById('snav-questions').classList.toggle('active', isQ);
+  document.getElementById('snav-report').classList.toggle('active', !isQ);
+  if (!isQ) buildReport();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORT BUILDER
+═══════════════════════════════════════════════════════════════ */
+// Track student answers: { qId: { studentAnswer, isCorrect } }
+const studentAnswers = {};
+
+// Call after each checkAnswer to register
+function registerStudentAnswer(qId, studentAnswer, isCorrect) {
+  studentAnswers[qId] = { studentAnswer, isCorrect };
+}
+
+function buildReport() {
+  const hint    = document.getElementById('report-hint');
+  const content = document.getElementById('report-content');
+  const totalChecked = Object.keys(studentAnswers).length;
+
+  if (totalChecked === 0) {
+    hint.style.display = 'flex';
+    content.classList.remove('visible');
+    return;
+  }
+
+  hint.style.display = 'none';
+  content.classList.add('visible');
+
+  // Group results by question type
+  const byType = {}; // { typeName: { total, wrong, items: [{id, isCorrect}] } }
+
+  for (const group of TEACHER_DATA.questions) {
+    const type = group.type;
+    if (!byType[type]) byType[type] = { total: 0, wrong: 0, items: [] };
+    for (const item of group.items) {
+      if (studentAnswers[item.id] !== undefined) {
+        byType[type].total++;
+        const correct = studentAnswers[item.id].isCorrect;
+        if (!correct) byType[type].wrong++;
+        byType[type].items.push({ id: item.id, isCorrect: correct });
+      }
+    }
+  }
+
+  // Build weakness list
+  const weakTypes = Object.entries(byType)
+    .filter(([, v]) => v.total > 0 && v.wrong > 0)
+    .sort((a, b) => (b[1].wrong / b[1].total) - (a[1].wrong / a[1].total));
+
+  let html = '';
+
+  // Summary per type
+  for (const [type, data] of Object.entries(byType)) {
+    if (data.total === 0) continue;
+    const correct = data.total - data.wrong;
+    const pct = Math.round((correct / data.total) * 100);
+    const scoreClass = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    const shortType = type.split(' ').slice(0, 3).join(' ');
+
+    const qRows = data.items.map(item => {
+      const icon = item.isCorrect ? '✅' : '❌';
+      const diag = item.isCorrect ? '' : getDiagnosis(item.id);
+      return `<div class="report-q-row">
+        <span class="rq-num">${item.id}</span>
+        <span class="rq-status">${icon}</span>
+        <span class="rq-diag">${diag}</span>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-group-card">
+      <div class="report-group-head">
+        <span class="report-group-name">${shortType}</span>
+        <span class="report-group-score ${scoreClass}">${correct}/${data.total} · ${pct}%</span>
+      </div>
+      <div class="report-q-list">${qRows}</div>
+    </div>`;
+  }
+
+  // Focus areas for student
+  if (weakTypes.length > 0) {
+    const focusItems = weakTypes.slice(0, 3).map(([type, data]) => {
+      const pct = Math.round(((data.total - data.wrong) / data.total) * 100);
+      const shortT = type.split(' ').slice(0,3).join(' ');
+      return `<div class="report-focus-item">
+        <div class="report-focus-dot"></div>
+        <div><strong>${shortT}</strong>: ${pct}% chính xác — cần ôn lại quy trình và bẫy thường gặp</div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎯 Học sinh cần tập trung</div>
+      ${focusItems}
+    </div>`;
+  } else if (totalChecked > 0) {
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎉 Kết quả tốt!</div>
+      <div class="report-focus-item"><div class="report-focus-dot"></div><div>Học sinh làm tốt tất cả dạng bài đã check.</div></div>
+    </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function getDiagnosis(qId) {
+  // Find which question type this belongs to
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === qId) {
+        const type = group.type;
+        if (type.includes('TRUE') || type.includes('FALSE')) return 'Nhầm FALSE/NOT GIVEN';
+        if (type.includes('Multiple')) return 'Chọn distractor';
+        if (type.includes('Short')) return 'Sai từ / vượt giới hạn';
+        if (type.includes('Heading')) return 'Nhầm ý chính';
+        if (type.includes('Matching')) return 'Locate sai đoạn';
+        if (type.includes('Summary')) return 'Sai từ / paraphrase';
+        return 'Cần xem lại';
+      }
+    }
+  }
+  return '';
+}
+</script>
+</body>
+</html>
